@@ -49,7 +49,8 @@ export default function CreateTask() {
         <Animated.View 
           entering={FadeInUp.springify()} 
           exiting={FadeOutUp.duration(300)}
-          className="absolute top-12 left-5 right-5 z-50"
+          className="absolute top-12 left-5 right-5 z-[999]"
+          style={{ elevation: 99 }}
         >
           <GlassCard className="flex-row items-center p-4 border-2 border-black dark:border-white shadow-sm" intensity={90}>
             <View className={`w-10 h-10 rounded-full items-center justify-center mr-3 border-2 ${toastMessage.type === 'success' ? 'border-green-500 bg-green-500/20' : 'border-red-500 bg-red-500/20'}`}>

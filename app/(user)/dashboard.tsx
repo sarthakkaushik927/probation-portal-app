@@ -66,7 +66,7 @@ export default function UserDashboard() {
     <Background>
       <ScrollView 
         className="flex-1"
-        contentContainerStyle={{ paddingBottom: 140, paddingTop: 90 }}
+        contentContainerStyle={{ paddingBottom: 140, paddingTop: 130 }}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />}
       >

@@ -11,7 +11,7 @@ import Background from '../../../components/Background';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useColorScheme } from 'nativewind';
 import { useRouter } from 'expo-router';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 
 
@@ -59,7 +59,7 @@ export default function UserDetail() {
   const attendanceRate = totalDays > 0 ? Math.round((presentDays / totalDays) * 100) : 0;
 
   return (
-    <ScrollView className="flex-1 bg-white dark:bg-zinc-950">
+    <ScrollView className="flex-1 bg-white dark:bg-zinc-950" contentContainerStyle={{ paddingTop: 130, paddingBottom: 140 }}>
       <Stack.Screen options={{ title: userData?.name || 'User Detail' }} />
       
       <View className="p-4">
@@ -143,7 +143,7 @@ export default function UserDetail() {
             onPress={async () => {
               try {
                 const res = await exportUserDataCSV(userId);
-                const fileUri = (FileSystem as any).documentDirectory + `user_${userId}.csv`;
+                const fileUri = FileSystem.documentDirectory + `user_${userId}.csv`;
                 await FileSystem.writeAsStringAsync(fileUri, res.data);
                 await Sharing.shareAsync(fileUri, { mimeType: 'text/csv' });
               } catch { Alert.alert('Error', 'Failed to export user data'); }

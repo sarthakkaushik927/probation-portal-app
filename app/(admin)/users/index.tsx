@@ -9,7 +9,7 @@ import { Stack, useRouter } from 'expo-router';
 import Background from '../../../components/Background';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useColorScheme } from 'nativewind';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 
 export default function AdminUsersList() {
@@ -57,11 +57,11 @@ export default function AdminUsersList() {
     try {
       const ids = selectedIds.length > 0 ? selectedIds : undefined;
       const res = await exportUsersCSV(ids);
-      const fileUri = (FileSystem as any).documentDirectory + 'users_export.csv';
+      const fileUri = FileSystem.documentDirectory + 'users_export.csv';
       await FileSystem.writeAsStringAsync(fileUri, res.data);
       await Sharing.shareAsync(fileUri, { mimeType: 'text/csv' });
-    } catch (e) {
-      Alert.alert('Error', 'Failed to export users');
+    } catch (e: any) {
+      Alert.alert('Export Error', e?.message || 'Failed to export users');
     }
   };
 
@@ -79,7 +79,7 @@ export default function AdminUsersList() {
       <Stack.Screen options={{ title: 'All Users', headerShown: true }} />
       
       {/* Toolbar */}
-      <View className="flex-row items-center justify-between px-4 pt-[90px] pb-2">
+      <View className="flex-row items-center justify-between px-4 pt-[130px] pb-2">
         <TouchableOpacity 
           onPress={() => { setIsSelectMode(!isSelectMode); setSelectedIds([]); }}
           className="flex-row items-center bg-zinc-100 dark:bg-zinc-900 px-3 py-2 rounded-lg border border-black dark:border-white"

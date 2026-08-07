@@ -154,13 +154,21 @@ export default function UserDashboard() {
             <Text className="text-sm font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">Analytics</Text>
           </View>
           <View className="px-5 mb-8">
-            <StatPieChart 
-              title="Tasks Overview" 
-              data={[
-                { name: 'Completed', population: totalSubmitted, color: '#10b981', legendFontColor: isDark ? '#fff' : '#000' },
-                { name: 'Pending', population: pendingTasks > 0 ? pendingTasks : 0, color: '#f59e0b', legendFontColor: isDark ? '#fff' : '#000' },
-              ]} 
-            />
+            {totalTasks > 0 ? (
+              <StatPieChart 
+                title="Tasks Overview" 
+                data={[
+                  { name: 'Completed', population: totalSubmitted, color: '#10b981', legendFontColor: isDark ? '#fff' : '#000' },
+                  { name: 'Pending', population: pendingTasks > 0 ? pendingTasks : 0, color: '#f59e0b', legendFontColor: isDark ? '#fff' : '#000' },
+                ]} 
+              />
+            ) : (
+              <GlassCard className="p-8 items-center justify-center">
+                <MaterialIcons name="pie-chart-outline" size={48} color={iconColor} style={{ opacity: 0.3 }} className="mb-4" />
+                <Text className="text-zinc-500 dark:text-zinc-400 font-bold text-center">No task data available yet.</Text>
+                <Text className="text-zinc-400 dark:text-zinc-500 text-sm text-center mt-1">Analytics will appear here once you have tasks.</Text>
+              </GlassCard>
+            )}
           </View>
 
         </Animated.View>

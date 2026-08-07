@@ -63,7 +63,7 @@ export default function UserLayout() {
         },
         header: ({ options }) => {
           return (
-            <View style={{ paddingTop: Math.max(insets.top, 10), paddingBottom: 10, backgroundColor: 'transparent' }} className="px-5">
+            <View style={{ paddingTop: Math.max(insets.top, 20) + 16, paddingBottom: 10, backgroundColor: 'transparent' }} className="px-5">
               <View className="flex-row items-center justify-between">
                 <View className="rounded-full border-2 border-black dark:border-white overflow-hidden">
                   <BlurView tint={isDark ? 'dark' : 'light'} intensity={80} className="px-5 py-2.5">

@@ -31,8 +31,8 @@ api.interceptors.response.use(
 );
 
 // Auth
-export const signup = (name: string, email: string, password: string) =>
-  api.post('/api/auth/signup', { name, email, password });
+export const signup = (name: string, email: string, password: string, studentType?: string, phoneNumber?: string) =>
+  api.post('/api/auth/signup', { name, email, password, studentType, phoneNumber });
 export const login = (email: string, password: string) =>
   api.post('/api/auth/login', { email, password });
 export const sendOTP = (email: string) =>
@@ -50,6 +50,10 @@ export const getUserSubmissions = () => api.get('/api/user/submissions');
 export const createSubmission = (data: object) => api.post('/api/user/submissions', data);
 export const updateSubmission = (taskId: string, data: object) => api.put(`/api/user/submissions`, { taskId, ...data });
 export const getUserAttendance = () => api.get('/api/user/attendance');
+export const updateProfile = (data: { name?: string; avatarData?: string }) =>
+  api.put('/api/user/profile', data);
+export const changePassword = (currentPassword: string, newPassword: string) =>
+  api.put('/api/user/change-password', { currentPassword, newPassword });
 
 // Admin
 export const getAdminDashboard = () => api.get('/api/admin/dashboard');
@@ -57,6 +61,7 @@ export const getAdminUsers = () => api.get('/api/admin/users');
 export const getAdminUser = (userId: string) => api.get(`/api/admin/users/${userId}`);
 export const updateUserDomain = (userId: string, domain: string | null) =>
   api.patch(`/api/admin/users/${userId}/domain`, { domain });
+export const deleteUser = (userId: string) => api.delete(`/api/admin/users/${userId}`);
 export const getAdminTasks = () => api.get('/api/admin/tasks');
 export const createTask = (data: object) => api.post('/api/admin/tasks', data);
 export const updateTask = (taskId: string, data: object) =>
@@ -72,18 +77,35 @@ export const getAdminAttendanceUsers = (date?: string) =>
 export const saveAttendance = (date: string, records: object[]) =>
   api.post('/api/admin/attendance', { date, records });
 
+// Admin Export CSV
+export const exportAttendanceCSV = () => api.get('/api/admin/export/attendance', { responseType: 'text' });
+export const exportSubmissionsCSV = () => api.get('/api/admin/export/submissions', { responseType: 'text' });
+export const exportUsersCSV = (userIds?: string[]) => {
+  const params = userIds ? `?userIds=${userIds.join(',')}` : '';
+  return api.get(`/api/admin/export/users${params}`, { responseType: 'text' });
+};
+export const exportUserDataCSV = (userId: string) =>
+  api.get(`/api/admin/export/users/${userId}`, { responseType: 'text' });
+
+// Submission Comments
+export const getSubmissionComments = (submissionId: string) =>
+  api.get(`/api/submissions/${submissionId}/comments`);
+export const addSubmissionComment = (submissionId: string, message: string) =>
+  api.post(`/api/submissions/${submissionId}/comments`, { message });
+
 // Notifications
 export const getNotifications = () => api.get('/api/notifications');
-export const markNotificationRead = (id: string) => api.patch(`/api/notifications/${id}/read`);
-export const broadcastNotification = (title: string, message: string) => 
-  api.post('/api/notifications/broadcast', { title, message });
+export const markNotificationRead = (id: string) => api.put(`/api/notifications/${id}/read`);
+export const markAllNotificationsRead = () => api.put('/api/notifications/read-all');
+export const broadcastNotification = (title: string, body: string) => 
+  api.post('/api/notifications/broadcast', { title, body });
 
 export const forgotPassword = (email: string) =>
   api.post('/api/auth/forgot-password', { email });
 export const resetPassword = (email: string, otp: string, newPassword: string) =>
   api.post('/api/auth/reset-password', { email, otp, newPassword });
-export const updatePassword = (newPassword: string) =>
-  api.post('/api/user/password', { newPassword });
+export const updatePassword = (currentPassword: string, newPassword: string) =>
+  api.put('/api/user/change-password', { currentPassword, newPassword });
 export const updateAvatar = (avatarData: string) =>
   api.patch('/api/user/avatar', { avatarData });
 export const savePushToken = (pushToken: string) =>

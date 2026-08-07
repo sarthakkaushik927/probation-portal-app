@@ -5,6 +5,7 @@ import { getAdminSubmission, approveSubmission, rejectSubmission } from '../../.
 import LoadingSpinner from '../../../components/LoadingSpinner';
 import * as Linking from 'expo-linking';
 import { MaterialIcons } from '@expo/vector-icons';
+import DiscussionThread from '../../../components/DiscussionThread';
 
 export default function SubmissionDetail() {
   const { submissionId } = useLocalSearchParams<{ submissionId: string }>();
@@ -145,6 +146,10 @@ export default function SubmissionDetail() {
             </View>
           )}
         </View>
+        {/* Discussion Thread */}
+        <DiscussionThread submissionId={submissionId} />
+
+        <View className="h-20" />
       </View>
     </ScrollView>
   );

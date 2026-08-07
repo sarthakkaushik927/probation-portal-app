@@ -1,6 +1,6 @@
 import { View, Text, ScrollView, RefreshControl, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
-import { getAdminDashboard, getAdminSubmissions, approveSubmission, rejectSubmission, broadcastNotification } from '../../services/api';
+import { getAdminDashboard, getAdminSubmissions, approveSubmission, rejectSubmission, broadcastNotification, exportAttendanceCSV, exportSubmissionsCSV, exportUsersCSV } from '../../services/api';
 import { useAuthStore } from '../../store/auth';
 import Skeleton from '../../components/Skeleton';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -12,6 +12,8 @@ import { useColorScheme } from 'nativewind';
 import { useState } from 'react';
 import Background from '../../components/Background';
 import { StatPieChart } from '../../components/ChartComponents';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 
 export default function AdminDashboard() {
   const user = useAuthStore(state => state.user);
@@ -204,6 +206,57 @@ export default function AdminDashboard() {
                 </Text>
               </TouchableOpacity>
             </GlassCard>
+          </View>
+
+          {/* Export Data Section */}
+          <View className="px-5 mb-2 mt-4">
+            <Text className="text-sm font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">Export Data</Text>
+          </View>
+          <View className="px-5 mb-8">
+            <View className="flex-row gap-3">
+              <TouchableOpacity 
+                className="flex-1 bg-zinc-100 dark:bg-zinc-900 border-2 border-black dark:border-white p-4 rounded-xl items-center"
+                onPress={async () => {
+                  try {
+                    const res = await exportAttendanceCSV();
+                    const fileUri = FileSystem.documentDirectory + 'attendance.csv';
+                    await FileSystem.writeAsStringAsync(fileUri, res.data);
+                    await Sharing.shareAsync(fileUri, { mimeType: 'text/csv' });
+                  } catch (e) { Alert.alert('Error', 'Failed to export attendance'); }
+                }}
+              >
+                <MaterialIcons name="event-available" size={28} color={iconColor} />
+                <Text className="text-xs font-bold text-zinc-900 dark:text-white mt-2 text-center">Attendance CSV</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                className="flex-1 bg-zinc-100 dark:bg-zinc-900 border-2 border-black dark:border-white p-4 rounded-xl items-center"
+                onPress={async () => {
+                  try {
+                    const res = await exportSubmissionsCSV();
+                    const fileUri = FileSystem.documentDirectory + 'submissions.csv';
+                    await FileSystem.writeAsStringAsync(fileUri, res.data);
+                    await Sharing.shareAsync(fileUri, { mimeType: 'text/csv' });
+                  } catch (e) { Alert.alert('Error', 'Failed to export submissions'); }
+                }}
+              >
+                <MaterialIcons name="description" size={28} color={iconColor} />
+                <Text className="text-xs font-bold text-zinc-900 dark:text-white mt-2 text-center">Submissions CSV</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                className="flex-1 bg-zinc-100 dark:bg-zinc-900 border-2 border-black dark:border-white p-4 rounded-xl items-center"
+                onPress={async () => {
+                  try {
+                    const res = await exportUsersCSV();
+                    const fileUri = FileSystem.documentDirectory + 'users.csv';
+                    await FileSystem.writeAsStringAsync(fileUri, res.data);
+                    await Sharing.shareAsync(fileUri, { mimeType: 'text/csv' });
+                  } catch (e) { Alert.alert('Error', 'Failed to export users'); }
+                }}
+              >
+                <MaterialIcons name="people" size={28} color={iconColor} />
+                <Text className="text-xs font-bold text-zinc-900 dark:text-white mt-2 text-center">Users CSV</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Pending Reviews Section */}

@@ -10,6 +10,8 @@ import AccountModal from '../../components/AccountModal';
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
+import { useQuery } from '@tanstack/react-query';
+import { getNotifications } from '../../services/api';
 
 export default function UserLayout() {
   const user = useAuthStore(state => state.user);
@@ -22,6 +24,13 @@ export default function UserLayout() {
   const borderColor = isDark ? '#ffffff' : '#000000';
   const tabBgColor = isDark ? 'rgba(9, 9, 11, 0.6)' : 'rgba(255, 255, 255, 0.6)';
   const insets = useSafeAreaInsets();
+
+  const { data: notifications } = useQuery({
+    queryKey: ['notifications'],
+    queryFn: () => getNotifications().then(res => res.data.data),
+    refetchInterval: 60000, // Refresh every minute
+  });
+  const unreadCount = notifications?.filter((n: any) => !n.isRead).length || 0;
 
   return (
     <>
@@ -65,8 +74,12 @@ export default function UserLayout() {
                 </View>
                 <View className="rounded-full border-2 border-black dark:border-white overflow-hidden">
                   <BlurView tint={isDark ? 'dark' : 'light'} intensity={80} className="flex-row items-center gap-2 px-3 py-1.5">
-                    <TouchableOpacity onPress={() => router.push('/(user)/notifications')} className="items-center justify-center w-9 h-9">
+                    <TouchableOpacity onPress={() => router.push('/(user)/notifications')} className="items-center justify-center w-9 h-9 relative">
                       <MaterialIcons name="notifications" size={22} color={activeColor} />
+                      {unreadCount > 0 && (
+                        <View className="absolute top-1 right-1 bg-red-500 w-3.5 h-3.5 rounded-full items-center justify-center border-2 border-transparent">
+                        </View>
+                      )}
                     </TouchableOpacity>
                     <View className="w-9 h-9 items-center justify-center">
                       <ThemeToggle />

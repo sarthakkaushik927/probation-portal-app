@@ -2,17 +2,26 @@ import { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getAdminUser, updateUserDomain } from '../../../services/api';
+import { getAdminUser, updateUserDomain, exportUserDataCSV, deleteUser } from '../../../services/api';
 import { DOMAINS } from '../../../constants/domains';
 import LoadingSpinner from '../../../components/LoadingSpinner';
 import StatCard from '../../../components/StatCard';
 import GlassCard from '../../../components/GlassCard';
 import Background from '../../../components/Background';
+import { MaterialIcons } from '@expo/vector-icons';
+import { useColorScheme } from 'nativewind';
+import { useRouter } from 'expo-router';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 
 
 export default function UserDetail() {
   const { userId } = useLocalSearchParams<{ userId: string }>();
   const queryClient = useQueryClient();
+  const router = useRouter();
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const iconColor = isDark ? '#fff' : '#000';
   const [selectedDomain, setSelectedDomain] = useState<string>('UNASSIGNED');
 
   const { data: user, isLoading } = useQuery({
@@ -126,6 +135,45 @@ export default function UserDetail() {
         ) : (
           <Text className="text-zinc-500 italic ml-1 mb-6">No attendance records found.</Text>
         )}
+
+        {/* Actions */}
+        <View className="flex-row gap-3 mb-6">
+          <TouchableOpacity
+            className="flex-1 bg-black dark:bg-white p-4 rounded-xl flex-row items-center justify-center"
+            onPress={async () => {
+              try {
+                const res = await exportUserDataCSV(userId);
+                const fileUri = FileSystem.documentDirectory + `user_${userId}.csv`;
+                await FileSystem.writeAsStringAsync(fileUri, res.data);
+                await Sharing.shareAsync(fileUri, { mimeType: 'text/csv' });
+              } catch { Alert.alert('Error', 'Failed to export user data'); }
+            }}
+          >
+            <MaterialIcons name="file-download" size={18} color={isDark ? '#000' : '#fff'} />
+            <Text className={`ml-2 font-bold text-xs uppercase tracking-widest ${isDark ? 'text-black' : 'text-white'}`}>Export CSV</Text>
+          </TouchableOpacity>
+          {userData?.role !== 'ADMIN' && (
+            <TouchableOpacity
+              className="flex-1 bg-red-500 p-4 rounded-xl flex-row items-center justify-center"
+              onPress={() => {
+                Alert.alert('Delete User', `Delete ${userData?.name || 'this user'}? This cannot be undone.`, [
+                  { text: 'Cancel', style: 'cancel' },
+                  { text: 'Delete', style: 'destructive', onPress: async () => {
+                    try {
+                      await deleteUser(userId);
+                      queryClient.invalidateQueries({ queryKey: ['adminUsers'] });
+                      Alert.alert('Success', 'User deleted');
+                      router.back();
+                    } catch { Alert.alert('Error', 'Failed to delete user'); }
+                  }}
+                ]);
+              }}
+            >
+              <MaterialIcons name="delete" size={18} color="#fff" />
+              <Text className="ml-2 font-bold text-xs uppercase tracking-widest text-white">Delete</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
     </ScrollView>
   );

@@ -9,6 +9,7 @@ import LoadingSpinner from '../../../components/LoadingSpinner';
 import GlassCard from '../../../components/GlassCard';
 import { MaterialIcons } from '@expo/vector-icons';
 import Background from '../../../components/Background';
+import DiscussionThread from '../../../components/DiscussionThread';
 
 
 export default function UserTaskDetail() {
@@ -235,6 +236,13 @@ export default function UserTaskDetail() {
             </TouchableOpacity>
           </GlassCard>
         )}
+
+        {/* Discussion Thread - only show when submission exists */}
+        {submission && (
+          <DiscussionThread submissionId={submission.id} />
+        )}
+
+        <View className="h-24" />
       </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

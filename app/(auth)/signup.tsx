@@ -9,11 +9,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import Background from '../../components/Background';
 import GlassCard from '../../components/GlassCard';
+import AnimatedLogo from '../../components/AnimatedLogo';
 
 const signupSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
+  studentType: z.enum(['HOSTELER', 'DAY_SCHOLAR'], { required_error: 'Please select a student type' }),
+  phoneNumber: z.string().min(10, 'Phone number must be at least 10 characters'),
 });
 type SignupForm = z.infer<typeof signupSchema>;
 
@@ -22,14 +25,14 @@ export default function SignupScreen() {
 
   const { control, handleSubmit, formState: { errors } } = useForm<SignupForm>({
     resolver: zodResolver(signupSchema),
-    defaultValues: { name: '', email: '', password: '' }
+    defaultValues: { name: '', email: '', password: '', studentType: 'DAY_SCHOLAR', phoneNumber: '' }
   });
 
   const signupMutation = useMutation({
     mutationFn: async (data: SignupForm) => {
       const emailLower = data.email.trim().toLowerCase();
       // First signup the user
-      await signup(data.name.trim(), emailLower, data.password);
+      await signup(data.name.trim(), emailLower, data.password, data.studentType, data.phoneNumber);
       // Then send the OTP
       await sendOTP(emailLower);
       return emailLower;
@@ -56,15 +59,12 @@ export default function SignupScreen() {
           className="flex-1"
         >
           <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24 }}>
-            <View className="items-center mb-8">
-              <View className="w-24 h-24 bg-white/10 dark:bg-black/20 rounded-[32px] items-center justify-center mb-6 border border-black/10 dark:border-white/10 shadow-sm overflow-hidden">
-                <GlassCard intensity={80} className="w-full h-full absolute top-0 left-0 border-0 rounded-[32px]" />
-                <View className="absolute z-10 w-full h-full items-center justify-center">
-                  <MaterialIcons name="person-add" size={48} color="#a855f7" />
-                </View>
+            <View className="items-center mb-10 mt-6">
+              <AnimatedLogo size={100} />
+              <View className="mt-6 items-center">
+                <Text className="text-4xl font-black font-sans text-zinc-900 dark:text-white mb-2 tracking-tighter">Create Account</Text>
+                <Text className="text-zinc-500 dark:text-zinc-400 font-sans text-lg">Join the probation portal</Text>
               </View>
-              <Text className="text-4xl font-black font-sans text-zinc-900 dark:text-white mb-2 tracking-tighter">Create Account</Text>
-              <Text className="text-zinc-500 dark:text-zinc-400 font-sans text-lg">Join the probation portal</Text>
             </View>
 
             <GlassCard className="p-2 mb-8">
@@ -133,6 +133,55 @@ export default function SignupScreen() {
                     )}
                   />
                   {errors.password && <Text className="text-red-500 text-sm mt-1 ml-2 font-medium">{errors.password.message}</Text>}
+                </View>
+
+                <View className="mb-4">
+                  <Controller
+                    control={control}
+                    name="phoneNumber"
+                    render={({ field: { onChange, onBlur, value } }) => (
+                      <View className={`flex-row items-center bg-white/50 dark:bg-black/30 border ${errors.phoneNumber ? 'border-red-500' : 'border-zinc-300 dark:border-zinc-800'} rounded-2xl px-4 h-16`}>
+                        <MaterialIcons name="phone" size={22} color={errors.phoneNumber ? "#ef4444" : "#71717a"} style={{ marginRight: 12 }} />
+                        <TextInput
+                          className="flex-1 text-zinc-900 dark:text-white font-sans text-base"
+                          placeholder="Phone Number"
+                          placeholderTextColor="#71717a"
+                          keyboardType="phone-pad"
+                          onBlur={onBlur}
+                          onChangeText={onChange}
+                          value={value}
+                        />
+                      </View>
+                    )}
+                  />
+                  {errors.phoneNumber && <Text className="text-red-500 text-sm mt-1 ml-2 font-medium">{errors.phoneNumber.message}</Text>}
+                </View>
+
+                <View className="mb-2">
+                  <Text className="text-sm font-bold text-zinc-500 mb-2 ml-1">Student Type</Text>
+                  <Controller
+                    control={control}
+                    name="studentType"
+                    render={({ field: { onChange, value } }) => (
+                      <View className="flex-row gap-3">
+                        <TouchableOpacity
+                          className={`flex-1 flex-row items-center justify-center p-3 rounded-xl border-2 ${value === 'DAY_SCHOLAR' ? 'border-black dark:border-white bg-zinc-100 dark:bg-zinc-900' : 'border-zinc-300 dark:border-zinc-800 bg-white/50 dark:bg-black/30'}`}
+                          onPress={() => onChange('DAY_SCHOLAR')}
+                        >
+                          <MaterialIcons name="home" size={20} color={value === 'DAY_SCHOLAR' ? (Platform.OS === 'ios' ? '#000' : '#fff') : '#71717a'} className="dark:text-white" />
+                          <Text className={`ml-2 font-bold font-sans ${value === 'DAY_SCHOLAR' ? 'text-zinc-900 dark:text-white' : 'text-zinc-500'}`}>Day Scholar</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          className={`flex-1 flex-row items-center justify-center p-3 rounded-xl border-2 ${value === 'HOSTELER' ? 'border-black dark:border-white bg-zinc-100 dark:bg-zinc-900' : 'border-zinc-300 dark:border-zinc-800 bg-white/50 dark:bg-black/30'}`}
+                          onPress={() => onChange('HOSTELER')}
+                        >
+                          <MaterialIcons name="apartment" size={20} color={value === 'HOSTELER' ? (Platform.OS === 'ios' ? '#000' : '#fff') : '#71717a'} className="dark:text-white" />
+                          <Text className={`ml-2 font-bold font-sans ${value === 'HOSTELER' ? 'text-zinc-900 dark:text-white' : 'text-zinc-500'}`}>Hosteler</Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                  />
+                  {errors.studentType && <Text className="text-red-500 text-sm mt-1 ml-2 font-medium">{errors.studentType.message}</Text>}
                 </View>
 
                 <TouchableOpacity 

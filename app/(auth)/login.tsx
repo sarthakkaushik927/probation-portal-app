@@ -10,6 +10,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import Background from '../../components/Background';
 import GlassCard from '../../components/GlassCard';
+import AnimatedLogo from '../../components/AnimatedLogo';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -56,15 +57,12 @@ export default function LoginScreen() {
           className="flex-1"
         >
           <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24 }}>
-            <View className="items-center mb-8">
-              <View className="w-24 h-24 bg-white/10 dark:bg-black/20 rounded-[32px] items-center justify-center mb-6 border border-black/10 dark:border-white/10 shadow-sm overflow-hidden">
-                <GlassCard intensity={80} className="w-full h-full absolute top-0 left-0 border-0 rounded-[32px]" />
-                <View className="absolute z-10 w-full h-full items-center justify-center">
-                  <MaterialIcons name="security" size={48} color="#3b82f6" />
-                </View>
+            <View className="items-center mb-10 mt-6">
+              <AnimatedLogo size={100} />
+              <View className="mt-6 items-center">
+                <Text className="text-4xl font-black font-sans text-zinc-900 dark:text-white mb-2 tracking-tighter">Welcome Back</Text>
+                <Text className="text-zinc-500 dark:text-zinc-400 font-sans text-lg">Log in to your account</Text>
               </View>
-              <Text className="text-4xl font-black font-sans text-zinc-900 dark:text-white mb-2 tracking-tighter">Welcome Back</Text>
-              <Text className="text-zinc-500 dark:text-zinc-400 font-sans text-lg">Sign in to your account</Text>
             </View>
 
             <GlassCard className="p-2 mb-8">

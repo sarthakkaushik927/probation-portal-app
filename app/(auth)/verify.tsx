@@ -1,8 +1,13 @@
 import { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMutation } from '@tanstack/react-query';
 import { verifyOTP, resendOTP } from '../../services/api';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { MaterialIcons } from '@expo/vector-icons';
+import Background from '../../components/Background';
+import GlassCard from '../../components/GlassCard';
+import AnimatedLogo from '../../components/AnimatedLogo';
 
 export default function VerifyScreen() {
   const { email } = useLocalSearchParams<{ email: string }>();
@@ -45,8 +50,8 @@ export default function VerifyScreen() {
   });
 
   const handleVerify = () => {
-    if (!otp) {
-      Alert.alert('Error', 'Please enter the verification code');
+    if (!otp || otp.length !== 6) {
+      Alert.alert('Error', 'Please enter the 6-digit verification code');
       return;
     }
     verifyMutation.mutate();
@@ -59,52 +64,66 @@ export default function VerifyScreen() {
   };
 
   return (
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      className="flex-1 bg-white"
-    >
-      <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24 }}>
-        <View className="mb-10">
-          <Text className="text-4xl font-bold text-gray-900 mb-2">Verify Email</Text>
-          <Text className="text-lg text-gray-500">We sent a verification code to {email}</Text>
-        </View>
-
-        <View className="mb-8">
-          <Text className="text-gray-700 font-semibold mb-2 ml-1">Verification Code</Text>
-          <TextInput
-            className="w-full bg-gray-50 p-4 rounded-xl border border-gray-200 text-gray-900 text-center text-2xl tracking-widest"
-            placeholder="123456"
-            keyboardType="number-pad"
-            maxLength={6}
-            value={otp}
-            onChangeText={setOtp}
-          />
-        </View>
-
-        <TouchableOpacity 
-          className={`w-full p-4 rounded-xl items-center mb-6 shadow-sm ${verifyMutation.isPending ? 'bg-blue-400' : 'bg-blue-600'}`}
-          onPress={handleVerify}
-          disabled={verifyMutation.isPending}
+    <Background>
+      <SafeAreaView className="flex-1">
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          className="flex-1"
         >
-          {verifyMutation.isPending ? (
-            <Text className="text-zinc-900 dark:text-white text-lg font-bold">Verifying...</Text>
-          ) : (
-            <Text className="text-zinc-900 dark:text-white text-lg font-bold">Verify Account</Text>
-          )}
-        </TouchableOpacity>
+          <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24 }}>
+            <View className="items-center mb-10 mt-6">
+              <AnimatedLogo size={100} />
+              <View className="mt-6 items-center">
+                <Text className="text-4xl font-black font-sans text-zinc-900 dark:text-white mb-2 tracking-tighter text-center">Verify Email</Text>
+                <Text className="text-zinc-500 dark:text-zinc-400 font-sans text-lg text-center">We sent a code to {email}</Text>
+              </View>
+            </View>
 
-        <View className="flex-row justify-center items-center">
-          <Text className="text-gray-500 text-base">Didn't receive the code? </Text>
-          <TouchableOpacity 
-            onPress={handleResend}
-            disabled={timer > 0 || resendMutation.isPending}
-          >
-            <Text className={`font-bold text-base ${timer > 0 ? 'text-gray-400' : 'text-blue-600'}`}>
-              {timer > 0 ? `Resend in ${timer}s` : 'Resend Code'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+            <GlassCard className="p-2 mb-8">
+              <View>
+                <View className="mb-4">
+                  <View className={`flex-row items-center bg-white/50 dark:bg-black/30 border border-zinc-300 dark:border-zinc-800 rounded-2xl px-4 h-16`}>
+                    <MaterialIcons name="security" size={22} color="#71717a" style={{ marginRight: 12 }} />
+                    <TextInput
+                      className="flex-1 text-zinc-900 dark:text-white font-sans text-2xl tracking-[0.5em] text-center"
+                      placeholder="••••••"
+                      placeholderTextColor="#71717a"
+                      keyboardType="number-pad"
+                      maxLength={6}
+                      value={otp}
+                      onChangeText={setOtp}
+                    />
+                  </View>
+                </View>
+
+                <TouchableOpacity 
+                  className={`h-16 rounded-2xl items-center justify-center flex-row shadow-sm mt-4 ${verifyMutation.isPending ? 'bg-zinc-800' : 'bg-zinc-900 dark:bg-white'}`}
+                  onPress={handleVerify}
+                  disabled={verifyMutation.isPending}
+                >
+                  {verifyMutation.isPending ? (
+                    <ActivityIndicator color={verifyMutation.isPending ? "#fff" : "#000"} />
+                  ) : (
+                    <>
+                      <Text className="text-white dark:text-black font-bold font-sans text-lg mr-2">Verify Account</Text>
+                      <MaterialIcons name="check-circle" size={20} color="dark:text-black text-white" />
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </GlassCard>
+
+            <View className="flex-row justify-center mt-4">
+              <Text className="text-zinc-500 dark:text-zinc-400 font-sans text-base">Didn't receive the code? </Text>
+              <TouchableOpacity onPress={handleResend} disabled={timer > 0 || resendMutation.isPending}>
+                <Text className={`font-bold font-sans text-base ${timer > 0 ? 'text-zinc-400 dark:text-zinc-600' : 'text-blue-600 dark:text-blue-400'}`}>
+                  {timer > 0 ? `Resend in ${timer}s` : 'Resend Code'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </Background>
   );
 }

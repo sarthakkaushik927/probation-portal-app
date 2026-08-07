@@ -135,7 +135,7 @@ export default function ProfileScreenComponent({ isDark }: { isDark: boolean }) 
           className="absolute top-12 left-5 right-5 z-[999]"
           style={{ elevation: 99 }}
         >
-          <GlassCard className="flex-row items-center p-4 border-2 border-black dark:border-white shadow-sm" intensity={90}>
+          <GlassCard className={`flex-row items-center p-4 border-2 shadow-sm ${toastMessage.type === 'success' ? 'border-green-500' : toastMessage.type === 'error' ? 'border-red-500' : 'border-black dark:border-white'}`} intensity={90}>
             <View className={`w-10 h-10 rounded-full items-center justify-center mr-3 border-2 ${toastMessage.type === 'success' ? 'border-green-500 bg-green-500/20' : 'border-red-500 bg-red-500/20'}`}>
               <MaterialIcons name={toastMessage.type === 'success' ? 'check' : 'error-outline'} size={24} color={toastMessage.type === 'success' ? '#10b981' : '#ef4444'} />
             </View>

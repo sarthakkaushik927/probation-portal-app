@@ -45,7 +45,7 @@ export default function ForgotPasswordScreen() {
       Alert.alert('Success', 'OTP sent to your email.');
     },
     onError: (error: any) => {
-      const msg = error.response?.data?.error || 'Failed to send OTP.';
+      const msg = typeof error.response?.data?.error === 'string' ? error.response.data.error : 'Failed to send OTP. Please try again.';
       Alert.alert('Error', msg);
     }
   });
@@ -59,7 +59,7 @@ export default function ForgotPasswordScreen() {
       router.replace('/(auth)/login');
     },
     onError: (error: any) => {
-      const msg = error.response?.data?.error || 'Failed to reset password.';
+      const msg = typeof error.response?.data?.error === 'string' ? error.response.data.error : 'Failed to reset password. Please try again.';
       Alert.alert('Error', msg);
     }
   });

@@ -9,6 +9,7 @@ import Skeleton from '../../components/Skeleton';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { MaterialIcons } from '@expo/vector-icons';
 import Background from '../../components/Background';
+import { StatPieChart } from '../../components/ChartComponents';
 import DomainSwatch from '../../components/DomainSwatch';
 import GlassCard from '../../components/GlassCard';
 import { useColorScheme } from 'nativewind';
@@ -146,6 +147,20 @@ export default function UserDashboard() {
                 <Text className="text-lg font-bold font-mono text-zinc-500 dark:text-zinc-400">{pendingTasks > 0 ? pendingTasks : 0}</Text>
               </View>
             </GlassCard>
+          </View>
+
+          {/* Charts Section */}
+          <View className="px-5 mb-2">
+            <Text className="text-sm font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">Analytics</Text>
+          </View>
+          <View className="px-5 mb-8">
+            <StatPieChart 
+              title="Tasks Overview" 
+              data={[
+                { name: 'Completed', population: totalSubmitted, color: '#10b981', legendFontColor: isDark ? '#fff' : '#000' },
+                { name: 'Pending', population: pendingTasks > 0 ? pendingTasks : 0, color: '#f59e0b', legendFontColor: isDark ? '#fff' : '#000' },
+              ]} 
+            />
           </View>
 
         </Animated.View>

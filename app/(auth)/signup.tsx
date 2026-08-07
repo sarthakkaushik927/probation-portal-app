@@ -39,7 +39,7 @@ export default function SignupScreen() {
       router.push(`/(auth)/verify?email=${encodeURIComponent(emailLower)}` as any);
     },
     onError: (error: any) => {
-      const msg = error.response?.data?.error || 'Signup failed. Please try again.';
+      const msg = typeof error.response?.data?.error === 'string' ? error.response.data.error : 'Signup failed. Please try again.';
       Alert.alert('Signup Error', msg);
     }
   });

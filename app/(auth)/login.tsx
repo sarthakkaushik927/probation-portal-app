@@ -39,7 +39,7 @@ export default function LoginScreen() {
       }
     },
     onError: (error: any) => {
-      const msg = error.response?.data?.error || 'Login failed. Please check your credentials.';
+      const msg = typeof error.response?.data?.error === 'string' ? error.response.data.error : 'Login failed. Please check your credentials.';
       Alert.alert('Login Error', msg);
     }
   });

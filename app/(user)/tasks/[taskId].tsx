@@ -36,7 +36,8 @@ export default function UserTaskDetail() {
       queryClient.invalidateQueries({ queryKey: ['userTasks'] }); // to update dashboard count
     },
     onError: (error: any) => {
-      Alert.alert('Error', error.response?.data?.error || 'Failed to submit task');
+      const msg = typeof error.response?.data?.error === 'string' ? error.response.data.error : 'Failed to submit task';
+      Alert.alert('Error', msg);
     }
   });
 
@@ -49,7 +50,8 @@ export default function UserTaskDetail() {
       queryClient.invalidateQueries({ queryKey: ['userSubmissions'] });
     },
     onError: (error: any) => {
-      Alert.alert('Error', error.response?.data?.error || 'Failed to update submission');
+      const msg = typeof error.response?.data?.error === 'string' ? error.response.data.error : 'Failed to update submission';
+      Alert.alert('Error', msg);
     }
   });
 

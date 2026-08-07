@@ -11,6 +11,7 @@ import GlassCard from '../../components/GlassCard';
 import { useColorScheme } from 'nativewind';
 import { useState } from 'react';
 import Background from '../../components/Background';
+import { StatPieChart } from '../../components/ChartComponents';
 
 export default function AdminDashboard() {
   const user = useAuthStore(state => state.user);
@@ -148,6 +149,21 @@ export default function AdminDashboard() {
             </GlassCard>
           </View>
 
+          {/* Charts Section */}
+          <View className="px-5 mb-2">
+            <Text className="text-sm font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">Analytics</Text>
+          </View>
+          <View className="px-5 mb-8">
+            <StatPieChart 
+              title="Submission Status" 
+              data={[
+                { name: 'Pending', population: data?.pendingReviews || 0, color: '#f59e0b', legendFontColor: isDark ? '#fff' : '#000' },
+                { name: 'Approved', population: 5, color: '#10b981', legendFontColor: isDark ? '#fff' : '#000' },
+                { name: 'Rejected', population: 2, color: '#ef4444', legendFontColor: isDark ? '#fff' : '#000' },
+              ]} 
+            />
+          </View>
+
           <View className="px-5 mb-2 mt-4">
             <Text className="text-sm font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">Broadcast Notification</Text>
           </View>
@@ -191,7 +207,7 @@ export default function AdminDashboard() {
           </View>
 
           {/* Pending Reviews Section */}
-          <View className="flex-row justify-between items-end mb-2 px-5">
+          <View className="flex-row justify-between items-end mb-4 px-5">
             <Text className="text-sm font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">Needs Review</Text>
             <Text 
               className="text-sm font-bold text-zinc-900 dark:text-white"
@@ -201,19 +217,20 @@ export default function AdminDashboard() {
             </Text>
           </View>
 
-          {submissionsLoading ? (
-            <Skeleton width="100%" height={100} className="mb-3 rounded-[24px]" />
-          ) : (
-            submissions?.filter((s: any) => s.status === 'PENDING').slice(0, 3).length > 0 ? (
-              submissions?.filter((s: any) => s.status === 'PENDING').slice(0, 3).map((submission: any) => (
-                <SubmissionCard 
-                  key={submission.id}
-                  submission={submission}
-                  onPress={() => router.push(`/(admin)/submissions/${submission.id}`)}
-                />
-              ))
+          <View className="px-5 mb-8">
+            {submissionsLoading ? (
+              <Skeleton width="100%" height={100} className="mb-3 rounded-[24px]" />
             ) : (
-              <View className="px-5 mb-8">
+              submissions?.filter((s: any) => s.status === 'PENDING').slice(0, 3).length > 0 ? (
+                submissions?.filter((s: any) => s.status === 'PENDING').slice(0, 3).map((submission: any) => (
+                  <View key={submission.id} className="mb-3">
+                    <SubmissionCard 
+                      submission={submission}
+                      onPress={() => router.push(`/(admin)/submissions/${submission.id}`)}
+                    />
+                  </View>
+                ))
+              ) : (
                 <GlassCard className="items-center justify-center py-8">
                   <View className="border-2 border-black dark:border-white w-16 h-16 rounded-full items-center justify-center mb-4">
                     <MaterialIcons name="done-all" size={32} color={iconColor} />
@@ -221,9 +238,9 @@ export default function AdminDashboard() {
                   <Text className="text-zinc-900 dark:text-white font-bold text-lg mb-1">All Caught Up!</Text>
                   <Text className="text-zinc-500 dark:text-zinc-400 text-center">No pending submissions to review right now.</Text>
                 </GlassCard>
-              </View>
             )
           )}
+          </View>
 
         </Animated.View>
       </ScrollView>

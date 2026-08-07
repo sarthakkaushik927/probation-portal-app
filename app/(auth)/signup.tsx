@@ -50,7 +50,7 @@ export default function SignupScreen() {
       showToast('Success', 'Account created! Please check your email.', 'success');
       setTimeout(() => {
         router.push(`/(auth)/verify?email=${encodeURIComponent(emailLower)}` as any);
-      }, 1500);
+      }, 2000);
     },
     onError: (error: any) => {
       const msg = typeof error.response?.data?.error === 'string' ? error.response.data.error : 'Signup failed. Please try again.';
@@ -90,7 +90,7 @@ export default function SignupScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           className="flex-1"
         >
-          <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-start', paddingTop: 80, padding: 24 }}>
+          <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24, paddingBottom: 100 }}>
             <View className="items-center mb-8 mt-10">
               <AnimatedLogo size={80} />
               <Text className="text-5xl font-black font-sans text-zinc-900 dark:text-white mt-4 tracking-tighter uppercase">NEXTGEN</Text>

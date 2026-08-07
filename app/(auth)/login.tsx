@@ -38,17 +38,12 @@ export default function LoginScreen() {
 
   const loginMutation = useMutation({
     mutationFn: (data: LoginForm) => login(data.email.trim().toLowerCase(), data.password),
-    onSuccess: async (res) => {
+    onSuccess: (res) => {
       if (res.data.success) {
         showToast('Success', 'Login successful!', 'success');
-        await setAuth(res.data.data.token, res.data.data.user);
-        setTimeout(() => {
-          if (res.data.data.user.role === 'ADMIN') {
-            router.replace('/(admin)/dashboard');
-          } else {
-            router.replace('/(user)/dashboard');
-          }
-        }, 1500);
+        setTimeout(async () => {
+          await setAuth(res.data.data.token, res.data.data.user);
+        }, 2000);
       }
     },
     onError: (error: any) => {
@@ -89,7 +84,7 @@ export default function LoginScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           className="flex-1"
         >
-          <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-start', paddingTop: 80, padding: 24 }}>
+          <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24, paddingBottom: 100 }}>
             <View className="items-center mb-8 mt-10">
               <AnimatedLogo size={80} />
               <Text className="text-5xl font-black font-sans text-zinc-900 dark:text-white mt-4 tracking-tighter uppercase">NEXTGEN</Text>

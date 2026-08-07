@@ -26,7 +26,7 @@ export default function UserTasksList() {
       <FlatList
         data={tasks}
         keyExtractor={(item: any) => item.id}
-        contentContainerStyle={{ padding: 16, paddingBottom: 140, paddingTop: 90 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 140, paddingTop: 130 }}
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
         ListEmptyComponent={<EmptyState title="No tasks available" message="You're all caught up!" />}
         renderItem={({ item }: { item: any }) => (

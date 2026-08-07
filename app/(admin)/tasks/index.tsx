@@ -26,7 +26,7 @@ export default function AdminTasksList() {
       <FlatList
         data={tasks}
         keyExtractor={(item: any) => item.id}
-        contentContainerStyle={{ padding: 16, paddingBottom: 140, paddingTop: 90 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 140, paddingTop: 130 }}
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
         ListEmptyComponent={<EmptyState title="No tasks" message="Create a task to get started" />}
         renderItem={({ item }: { item: any }) => (

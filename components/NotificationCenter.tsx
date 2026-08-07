@@ -37,8 +37,8 @@ export default function NotificationCenter() {
 
   return (
     <View className="flex-1" style={{ paddingTop: 130 }}>
-      <View className="flex-row justify-end items-center p-4 border-b-2 border-black dark:border-white h-16">
-        {unreadCount > 0 && (
+      {unreadCount > 0 && (
+        <View className="flex-row justify-end items-center p-4 border-b-2 border-black dark:border-white h-16">
           <TouchableOpacity 
             className="bg-black dark:bg-white px-4 py-2 rounded-lg"
             onPress={() => markAllReadMutation.mutate()}
@@ -50,8 +50,8 @@ export default function NotificationCenter() {
               <Text className="text-white dark:text-black font-bold font-mono">Mark All Read</Text>
             )}
           </TouchableOpacity>
-        )}
-      </View>
+        </View>
+      )}
 
       <FlatList
         data={notifications}

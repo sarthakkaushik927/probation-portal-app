@@ -7,7 +7,7 @@ import Background from '../../components/Background';
 export default function AdminNotifications() {
   return (
     <Background>
-      <Stack.Screen options={{ headerShown: false }} />
+      <Stack.Screen options={{ title: 'Notifications', headerShown: true }} />
       <NotificationCenter />
     </Background>
   );

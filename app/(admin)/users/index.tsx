@@ -150,6 +150,7 @@ export default function AdminUsersList() {
         visible={exportModalVisible}
         onClose={() => setExportModalVisible(false)}
         users={users || []}
+        initialSelectedUserIds={selectedIds.length > 0 ? selectedIds : undefined}
         onExport={onGenerateCSV}
       />
     </Background>

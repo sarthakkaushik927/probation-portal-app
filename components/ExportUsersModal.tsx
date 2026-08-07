@@ -18,6 +18,7 @@ interface ExportUsersModalProps {
   visible: boolean;
   onClose: () => void;
   users: User[];
+  initialSelectedUserIds?: string[];
   onExport: (csvData: string) => void;
 }
 
@@ -30,7 +31,7 @@ const AVAILABLE_FIELDS = [
   { key: 'createdAt', label: 'Joined Date' },
 ];
 
-export default function ExportUsersModal({ visible, onClose, users, onExport }: ExportUsersModalProps) {
+export default function ExportUsersModal({ visible, onClose, users, initialSelectedUserIds, onExport }: ExportUsersModalProps) {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
   const iconColor = isDark ? '#fff' : '#000';
@@ -40,10 +41,10 @@ export default function ExportUsersModal({ visible, onClose, users, onExport }: 
 
   useEffect(() => {
     if (visible && users) {
-      setSelectedUserIds(users.map(u => u.id));
+      setSelectedUserIds(initialSelectedUserIds ? initialSelectedUserIds : users.map(u => u.id));
       setSelectedFields(AVAILABLE_FIELDS.map(f => f.key));
     }
-  }, [visible, users]);
+  }, [visible, users, initialSelectedUserIds]);
 
   const toggleField = (key: string) => {
     setSelectedFields(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
@@ -78,7 +79,7 @@ export default function ExportUsersModal({ visible, onClose, users, onExport }: 
   return (
     <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose}>
       <View className="flex-1 justify-end bg-black/50">
-        <View className="bg-zinc-50 dark:bg-zinc-900 rounded-t-3xl h-[80%] border-t-2 border-black dark:border-white shadow-2xl">
+        <GlassCard className="rounded-t-3xl h-[80%] border-t-2 border-black dark:border-white shadow-2xl overflow-hidden" intensity={100}>
           <View className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex-row justify-between items-center">
             <Text className="text-xl font-bold font-sans text-zinc-900 dark:text-white">Export Users</Text>
             <TouchableOpacity onPress={onClose}>
@@ -150,7 +151,7 @@ export default function ExportUsersModal({ visible, onClose, users, onExport }: 
               </Text>
             </TouchableOpacity>
           </View>
-        </View>
+        </GlassCard>
       </View>
     </Modal>
   );

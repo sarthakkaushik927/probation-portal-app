@@ -1,4 +1,5 @@
-import { View, Text, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { useMutation } from '@tanstack/react-query';
 import { login } from '../../services/api';
@@ -12,6 +13,7 @@ import Background from '../../components/Background';
 import GlassCard from '../../components/GlassCard';
 import AnimatedLogo from '../../components/AnimatedLogo';
 import ThemeToggle from '../../components/ThemeToggle';
+import Animated, { FadeInUp, FadeOutUp } from 'react-native-reanimated';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -22,6 +24,12 @@ type LoginForm = z.infer<typeof loginSchema>;
 export default function LoginScreen() {
   const router = useRouter();
   const setAuth = useAuthStore(state => state.setAuth);
+  const [toastMessage, setToastMessage] = useState<{ title: string; message: string; type: 'success' | 'error' | 'default' } | null>(null);
+
+  const showToast = (title: string, message: string, type: 'success' | 'error' | 'default' = 'default') => {
+    setToastMessage({ title, message, type });
+    setTimeout(() => setToastMessage(null), 3000);
+  };
 
   const { control, handleSubmit, formState: { errors } } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -32,17 +40,20 @@ export default function LoginScreen() {
     mutationFn: (data: LoginForm) => login(data.email.trim().toLowerCase(), data.password),
     onSuccess: async (res) => {
       if (res.data.success) {
+        showToast('Success', 'Login successful!', 'success');
         await setAuth(res.data.data.token, res.data.data.user);
-        if (res.data.data.user.role === 'ADMIN') {
-          router.replace('/(admin)/dashboard');
-        } else {
-          router.replace('/(user)/dashboard');
-        }
+        setTimeout(() => {
+          if (res.data.data.user.role === 'ADMIN') {
+            router.replace('/(admin)/dashboard');
+          } else {
+            router.replace('/(user)/dashboard');
+          }
+        }, 1500);
       }
     },
     onError: (error: any) => {
       const msg = typeof error.response?.data?.error === 'string' ? error.response.data.error : 'Login failed. Please check your credentials.';
-      Alert.alert('Login Error', msg);
+      showToast('Login Error', msg, 'error');
     }
   });
 
@@ -53,6 +64,24 @@ export default function LoginScreen() {
   return (
     <Background>
       <SafeAreaView className="flex-1">
+        {toastMessage && (
+          <Animated.View 
+            entering={FadeInUp.springify()} 
+            exiting={FadeOutUp.duration(300)}
+            className="absolute top-12 left-5 right-5 z-[999]"
+            style={{ elevation: 99 }}
+          >
+            <GlassCard className={`flex-row items-center p-4 border-2 shadow-sm ${toastMessage.type === 'success' ? 'border-green-500' : toastMessage.type === 'error' ? 'border-red-500' : 'border-black dark:border-white'}`} intensity={90}>
+              <View className={`w-10 h-10 rounded-full items-center justify-center mr-3 border-2 ${toastMessage.type === 'success' ? 'border-green-500 bg-green-500/20' : 'border-red-500 bg-red-500/20'}`}>
+                <MaterialIcons name={toastMessage.type === 'success' ? 'check' : 'error-outline'} size={24} color={toastMessage.type === 'success' ? '#10b981' : '#ef4444'} />
+              </View>
+              <View className="flex-1">
+                <Text className="text-zinc-900 dark:text-white font-bold font-sans text-base">{toastMessage.title}</Text>
+                <Text className="text-zinc-500 dark:text-zinc-400 font-sans text-sm">{toastMessage.message}</Text>
+              </View>
+            </GlassCard>
+          </Animated.View>
+        )}
         <View className="absolute top-12 right-6 z-50 w-12 h-12 bg-white/50 dark:bg-black/30 rounded-full items-center justify-center border border-zinc-200 dark:border-zinc-800 shadow-sm">
           <ThemeToggle />
         </View>
@@ -60,7 +89,7 @@ export default function LoginScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           className="flex-1"
         >
-          <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24 }}>
+          <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-start', paddingTop: 80, padding: 24 }}>
             <View className="items-center mb-8 mt-10">
               <AnimatedLogo size={80} />
               <Text className="text-5xl font-black font-sans text-zinc-900 dark:text-white mt-4 tracking-tighter uppercase">NEXTGEN</Text>

@@ -55,7 +55,7 @@ export default function SignupScreen() {
   return (
     <Background>
       <SafeAreaView className="flex-1">
-        <View className="absolute top-6 right-6 z-50 w-12 h-12 bg-white/50 dark:bg-black/30 rounded-full items-center justify-center border border-zinc-200 dark:border-zinc-800 shadow-sm">
+        <View className="absolute top-12 right-6 z-50 w-12 h-12 bg-white/50 dark:bg-black/30 rounded-full items-center justify-center border border-zinc-200 dark:border-zinc-800 shadow-sm">
           <ThemeToggle />
         </View>
         <KeyboardAvoidingView 
@@ -63,11 +63,16 @@ export default function SignupScreen() {
           className="flex-1"
         >
           <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24 }}>
-            <View className="items-center mb-10 mt-6">
-              <AnimatedLogo size={100} />
-              <View className="mt-6 items-center">
-                <Text className="text-4xl font-black font-sans text-zinc-900 dark:text-white mb-2 tracking-tighter">Create Account</Text>
-                <Text className="text-zinc-500 dark:text-zinc-400 font-sans text-lg">Join NextGen</Text>
+            <View className="items-center mb-8 mt-10">
+              <AnimatedLogo size={80} />
+              <Text className="text-5xl font-black font-sans text-zinc-900 dark:text-white mt-4 tracking-tighter uppercase">NEXTGEN</Text>
+              <Text className="text-zinc-500 dark:text-zinc-400 font-sans text-xs text-center px-6 mt-2 mb-6 leading-relaxed">
+                The ultimate portal for seamless collaboration, task management, and domain tracking.
+              </Text>
+              
+              <View className="mt-2 items-center">
+                <Text className="text-2xl font-bold font-sans text-zinc-900 dark:text-white mb-1 tracking-tight">Create Account</Text>
+                <Text className="text-zinc-500 dark:text-zinc-400 font-sans text-sm">Join NextGen</Text>
               </View>
             </View>
 

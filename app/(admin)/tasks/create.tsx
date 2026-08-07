@@ -5,6 +5,9 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createTask } from '../../../services/api';
 import { DOMAINS } from '../../../constants/domains';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import Animated, { FadeInUp, FadeOutUp } from 'react-native-reanimated';
+import { MaterialIcons } from '@expo/vector-icons';
+import GlassCard from '../../../components/GlassCard';
 
 export default function CreateTask() {
   const [title, setTitle] = useState('');
@@ -12,6 +15,7 @@ export default function CreateTask() {
   const [domain, setDomain] = useState('COMMON');
   const [deadline, setDeadline] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [toastMessage, setToastMessage] = useState<{title: string, message: string, type: 'success' | 'error'} | null>(null);
   
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -19,12 +23,15 @@ export default function CreateTask() {
   const createMutation = useMutation({
     mutationFn: () => createTask({ title, description, domain, deadline: deadline.toISOString() }),
     onSuccess: () => {
-      Alert.alert('Success', 'Task created successfully');
+      setToastMessage({ title: 'Success', message: 'Task created successfully', type: 'success' });
       queryClient.invalidateQueries({ queryKey: ['adminTasks'] });
-      router.back();
+      setTimeout(() => {
+        router.replace('/(admin)/dashboard');
+      }, 1500);
     },
     onError: (error: any) => {
-      Alert.alert('Error', error.response?.data?.error || 'Failed to create task');
+      setToastMessage({ title: 'Error', message: error.response?.data?.error || 'Failed to create task', type: 'error' });
+      setTimeout(() => setToastMessage(null), 3000);
     }
   });
 
@@ -37,10 +44,29 @@ export default function CreateTask() {
   };
 
   return (
-    <ScrollView className="flex-1 bg-white dark:bg-zinc-950 p-5">
-      <Stack.Screen options={{ title: 'Create Task' }} />
+    <View className="flex-1 bg-white dark:bg-zinc-950">
+      {toastMessage && (
+        <Animated.View 
+          entering={FadeInUp.springify()} 
+          exiting={FadeOutUp.duration(300)}
+          className="absolute top-12 left-5 right-5 z-50"
+        >
+          <GlassCard className="flex-row items-center p-4 border-2 border-black dark:border-white shadow-sm" intensity={90}>
+            <View className={`w-10 h-10 rounded-full items-center justify-center mr-3 border-2 ${toastMessage.type === 'success' ? 'border-green-500 bg-green-500/20' : 'border-red-500 bg-red-500/20'}`}>
+              <MaterialIcons name={toastMessage.type === 'success' ? 'check' : 'error-outline'} size={24} color={toastMessage.type === 'success' ? '#10b981' : '#ef4444'} />
+            </View>
+            <View className="flex-1">
+              <Text className="text-zinc-900 dark:text-white font-bold font-sans text-base">{toastMessage.title}</Text>
+              <Text className="text-zinc-500 dark:text-zinc-400 font-sans text-sm">{toastMessage.message}</Text>
+            </View>
+          </GlassCard>
+        </Animated.View>
+      )}
       
-      <View className="mb-4">
+      <ScrollView contentContainerStyle={{ paddingTop: 130, paddingBottom: 120, paddingHorizontal: 20 }}>
+        <Stack.Screen options={{ title: 'Create Task', headerTransparent: true }} />
+        
+        <View className="mb-4">
         <Text className="text-gray-700 dark:text-slate-300 font-semibold mb-2 ml-1">Title</Text>
         <TextInput
           className="w-full bg-white dark:bg-zinc-900 p-4 rounded-xl border-[3px] border-black dark:border-white text-zinc-900 dark:text-white font-mono"
@@ -119,5 +145,6 @@ export default function CreateTask() {
         </Text>
       </TouchableOpacity>
     </ScrollView>
+    </View>
   );
 }

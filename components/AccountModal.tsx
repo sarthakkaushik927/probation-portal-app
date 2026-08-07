@@ -188,7 +188,7 @@ export default function AccountModal({ visible, onClose }: AccountModalProps) {
                 }}>
                   <View className="p-4 rounded-xl border border-black dark:border-white bg-zinc-100 dark:bg-zinc-900/50">
                     <Text className="text-zinc-900 dark:text-white text-center font-bold mb-2">Sign out of {user?.name}?</Text>
-                    <Text className="text-zinc-600 dark:text-zinc-400 text-center text-xs mb-6 px-4">You will need to re-authenticate to access the probation portal.</Text>
+                    <Text className="text-zinc-600 dark:text-zinc-400 text-center text-xs mb-6 px-4">You will need to re-authenticate to access NextGen.</Text>
                     
                     <View className="flex-row gap-3">
                       <TouchableOpacity 

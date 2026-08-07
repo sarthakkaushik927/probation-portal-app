@@ -67,7 +67,7 @@ export default function SignupScreen() {
               <AnimatedLogo size={100} />
               <View className="mt-6 items-center">
                 <Text className="text-4xl font-black font-sans text-zinc-900 dark:text-white mb-2 tracking-tighter">Create Account</Text>
-                <Text className="text-zinc-500 dark:text-zinc-400 font-sans text-lg">Join the probation portal</Text>
+                <Text className="text-zinc-500 dark:text-zinc-400 font-sans text-lg">Join NextGen</Text>
               </View>
             </View>
 

@@ -19,7 +19,7 @@ export default function Index() {
         </View>
         
         <Text className="text-4xl font-bold text-gray-900 mb-2 text-center">
-          Probation Portal
+          NextGen
         </Text>
         <Text className="text-lg text-gray-500 mb-12 text-center">
           Track tasks, manage domains, and submit your work.

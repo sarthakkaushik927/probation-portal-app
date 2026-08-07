@@ -4,7 +4,7 @@ import { getAdminDashboard } from '../../services/api';
 import { useAuthStore } from '../../store/auth';
 import StatCard from '../../components/StatCard';
 import Skeleton from '../../components/Skeleton';
-import { MotiView } from 'moti';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { MaterialIcons } from '@expo/vector-icons';
 
 export default function AdminDashboard() {
@@ -42,11 +42,9 @@ export default function AdminDashboard() {
 
         <Text className="text-lg font-bold text-gray-800 dark:text-slate-200 mb-4">Overview</Text>
         
-        <MotiView 
+        <Animated.View 
           className="flex-col"
-          from={{ opacity: 0, translateY: 20 }}
-          animate={{ opacity: 1, translateY: 0 }}
-          transition={{ type: 'timing', duration: 500 }}
+          entering={FadeInDown.duration(500)}
         >
           <StatCard 
             title="Total Users" 
@@ -66,7 +64,7 @@ export default function AdminDashboard() {
             icon={<MaterialIcons name="rate-review" size={24} color="#f59e0b" />}
             colorClass="bg-yellow-500"
           />
-        </MotiView>
+        </Animated.View>
       </View>
     </ScrollView>
   );

@@ -1,9 +1,10 @@
 import { Tabs } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import { TouchableOpacity } from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
 import { useAuthStore } from '../../store/auth';
 import { useRouter } from 'expo-router';
 import { getDomainColor } from '../../constants/domains';
+import ThemeToggle from '../../components/ThemeToggle';
 
 export default function UserLayout() {
   const clearAuth = useAuthStore(state => state.clearAuth);
@@ -32,9 +33,12 @@ export default function UserLayout() {
       screenOptions={{
         tabBarActiveTintColor: getTintColor(),
         headerRight: () => (
-          <TouchableOpacity onPress={handleLogout} className="mr-4">
-            <MaterialIcons name="logout" size={24} color="#ef4444" />
-          </TouchableOpacity>
+          <View className="flex-row items-center gap-3 mr-4">
+            <ThemeToggle />
+            <TouchableOpacity onPress={handleLogout}>
+              <MaterialIcons name="logout" size={24} color="#ef4444" />
+            </TouchableOpacity>
+          </View>
         ),
       }}>
       <Tabs.Screen

@@ -3,6 +3,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { TouchableOpacity, View, Text } from 'react-native';
 import { useAuthStore } from '../../store/auth';
 import { useRouter } from 'expo-router';
+import ThemeToggle from '../../components/ThemeToggle';
 
 export default function AdminLayout() {
   const clearAuth = useAuthStore(state => state.clearAuth);
@@ -17,9 +18,12 @@ export default function AdminLayout() {
     <Drawer
       screenOptions={{
         headerRight: () => (
-          <TouchableOpacity onPress={handleLogout} className="mr-4">
-            <MaterialIcons name="logout" size={24} color="#ef4444" />
-          </TouchableOpacity>
+          <View className="flex-row items-center gap-3 mr-4">
+            <ThemeToggle />
+            <TouchableOpacity onPress={handleLogout}>
+              <MaterialIcons name="logout" size={24} color="#ef4444" />
+            </TouchableOpacity>
+          </View>
         ),
       }}>
       <Drawer.Screen

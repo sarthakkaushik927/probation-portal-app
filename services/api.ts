@@ -3,10 +3,11 @@ import * as SecureStore from 'expo-secure-store';
 
 import { Platform } from 'react-native';
 
-const ENV_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:4000';
+const ENV_URL = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.0.109:4000';
+// Force the IP address instead of 10.0.2.2 so both real phones and emulators work
 const BASE_URL = Platform.OS === 'web' 
   ? ENV_URL.replace('10.0.2.2', 'localhost') 
-  : ENV_URL;
+  : ENV_URL.replace('10.0.2.2', '192.168.0.109');
 
 const api = axios.create({ baseURL: BASE_URL });
 
@@ -18,8 +19,20 @@ api.interceptors.request.use(async (config) => {
     token = await SecureStore.getItemAsync('auth_token');
   }
   if (token) config.headers.Authorization = `Bearer ${token}`;
+  console.log(`📤 ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => {
+    console.log(`📥 ${response.status} ${response.config.method?.toUpperCase()} ${response.config.url}`);
+    return response;
+  },
+  (error) => {
+    console.log(`❌ ${error.response?.status || 'NETWORK'} ${error.config?.method?.toUpperCase()} ${error.config?.url}`, error.message);
+    return Promise.reject(error);
+  }
+);
 
 // Auth
 export const signup = (name: string, email: string, password: string) =>

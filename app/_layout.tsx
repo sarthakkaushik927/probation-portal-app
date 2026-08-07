@@ -5,10 +5,13 @@ import { queryClient, asyncStoragePersister } from '../lib/query-client';
 import { useAuthStore } from '../store/auth';
 import * as SplashScreen from 'expo-splash-screen';
 import { useColorScheme } from 'nativewind';
+import { ThemeProvider, DarkTheme, DefaultTheme } from '@react-navigation/native';
+import { StatusBar } from 'expo-status-bar';
+import { View } from "react-native";
 import "../global.css";
 
 // Prevent auto hide while we check auth
-SplashScreen.preventAutoHideAsync();
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 function RootLayoutNav() {
   const { colorScheme } = useColorScheme();
@@ -18,10 +21,12 @@ function RootLayoutNav() {
   const router = useRouter();
 
   useEffect(() => {
-    loadFromStorage().finally(() => {
-      setIsReady(true);
-      SplashScreen.hideAsync();
-    });
+    loadFromStorage()
+      .catch((e) => console.warn('Failed to load auth:', e))
+      .finally(() => {
+        setIsReady(true);
+        SplashScreen.hideAsync().catch(() => {});
+      });
   }, []);
 
   useEffect(() => {
@@ -46,13 +51,17 @@ function RootLayoutNav() {
 
   if (!isReady) return null;
 
+  const isDark = colorScheme === 'dark';
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="index" />
-      <Stack.Screen name="(auth)" />
-      <Stack.Screen name="(admin)" />
-      <Stack.Screen name="(user)" />
-    </Stack>
+    <ThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(admin)" />
+        <Stack.Screen name="(user)" />
+      </Stack>
+    </ThemeProvider>
   );
 }
 

@@ -4,7 +4,7 @@ import { getMe, getUserTasks, getUserSubmissions } from '../../services/api';
 import { useAuthStore } from '../../store/auth';
 import StatCard from '../../components/StatCard';
 import Skeleton from '../../components/Skeleton';
-import { MotiView } from 'moti';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getDomainColor } from '../../constants/domains';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -60,11 +60,7 @@ export default function UserDashboard() {
         className="flex-1"
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />}
       >
-        <MotiView
-          from={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ type: 'timing', duration: 400 }}
-        >
+        <Animated.View entering={FadeIn.duration(400)}>
           <View className={`${domainColorClass} pt-12 pb-16 px-6 rounded-b-[40px] shadow-sm`}>
         <Text className="text-3xl font-bold text-white mb-2 shadow-sm">
           Hello, {me?.name?.split(' ')[0] || 'User'}
@@ -94,7 +90,7 @@ export default function UserDashboard() {
           </View>
         </View>
       </View>
-        </MotiView>
+        </Animated.View>
       </ScrollView>
     </SafeAreaView>
   );

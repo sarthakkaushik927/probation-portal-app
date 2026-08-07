@@ -7,7 +7,7 @@ export default function UserChatScreen() {
   return (
     <Background>
       <Stack.Screen options={{ title: 'Global Chat', headerShown: true }} />
-      <View style={{ flex: 1, paddingTop: 100 }}>
+      <View style={{ flex: 1, paddingTop: 100, paddingBottom: 100 }}>
         <ChatRoom channel="global-chat" />
       </View>
     </Background>

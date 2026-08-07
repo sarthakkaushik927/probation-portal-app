@@ -157,6 +157,14 @@ export default function AdminLayout() {
         }}
       />
       <Tabs.Screen
+        name="chat"
+        options={{
+          title: 'Chat',
+          headerTitle: 'Global Chat',
+          tabBarIcon: ({ color }: { color: string }) => <MaterialIcons name="chat-bubble-outline" size={24} color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="submissions/[submissionId]"
         options={{
           href: null,

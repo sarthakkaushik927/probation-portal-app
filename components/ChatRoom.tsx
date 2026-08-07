@@ -7,7 +7,7 @@ import { useAuthStore } from '../store/auth';
 import { useRealtime } from '../hooks/useRealtime';
 import axios from 'axios';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSequence, runOnJS } from 'react-native-reanimated';
-import GlassCard from './GlassCard';
+import { BlurView } from 'expo-blur';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:4000/api';
 
@@ -52,6 +52,7 @@ export default function ChatRoom({ channel = 'global-chat' }) {
 
   const [message, setMessage] = useState('');
   const [flyingEmojis, setFlyingEmojis] = useState<{ id: string, type: string }[]>([]);
+  const flatListRef = useRef<FlatList<any> | null>(null);
 
   // Fetch initial history
   const { data: history } = useQuery({
@@ -91,7 +92,15 @@ export default function ChatRoom({ channel = 'global-chat' }) {
 
   const sendMutation = useMutation({
     mutationFn: (content: string) => axios.post(`${API_URL}/chat`, { content }, { headers: { Authorization: `Bearer ${token}` } }),
-    onSuccess: () => setMessage(''),
+    onSuccess: () => {
+      setMessage('');
+      // scroll to show the new message (inverted list -> offset 0)
+      try {
+        flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+      } catch (e) {
+        // ignore
+      }
+    },
   });
 
   const reactMutation = useMutation({
@@ -99,8 +108,9 @@ export default function ChatRoom({ channel = 'global-chat' }) {
   });
 
   const handleSend = () => {
-    if (!message.trim()) return;
-    sendMutation.mutate(message.trim());
+    const text = message.trim();
+    if (!text || sendMutation.isPending) return;
+    sendMutation.mutate(text);
   };
 
   const handleReact = (type: string) => {
@@ -143,8 +153,13 @@ export default function ChatRoom({ channel = 'global-chat' }) {
   };
 
   return (
-    <View className="flex-1">
+    <KeyboardAvoidingView 
+      className="flex-1"
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+    >
       <FlatList
+        ref={flatListRef}
         data={history || []}
         keyExtractor={item => item.id}
         renderItem={renderMessage}
@@ -159,13 +174,16 @@ export default function ChatRoom({ channel = 'global-chat' }) {
       ))}
 
       {/* Input Area */}
-      <GlassCard className="m-4 p-2 flex-row items-center border border-zinc-200 dark:border-zinc-800 rounded-full" intensity={80}>
+      <View className="m-4 overflow-hidden rounded-full border-2 border-black dark:border-white">
+        <BlurView pointerEvents="none" intensity={80} tint={isDark ? "dark" : "light"} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: isDark ? 'rgba(9, 9, 11, 0.6)' : 'rgba(255, 255, 255, 0.6)' }} />
+        <View className="flex-row items-center p-2">
         <TextInput
           className="flex-1 h-12 px-4 text-base text-zinc-900 dark:text-white"
           placeholder="Type a message... (Use @ to tag)"
           placeholderTextColor={isDark ? "#71717a" : "#a1a1aa"}
           value={message}
           onChangeText={setMessage}
+          onSubmitEditing={handleSend}
           multiline
           maxLength={500}
         />
@@ -173,15 +191,27 @@ export default function ChatRoom({ channel = 'global-chat' }) {
           <TouchableOpacity onPress={() => handleReact('heart')} className="p-2">
             <MaterialIcons name="favorite-border" size={24} color={isDark ? "#fff" : "#000"} />
           </TouchableOpacity>
-          <TouchableOpacity 
-            onPress={handleSend} 
+          <TouchableOpacity
+            onPress={handleSend}
             disabled={!message.trim() || sendMutation.isPending}
-            className={`w-10 h-10 rounded-full items-center justify-center ${message.trim() ? 'bg-blue-600' : 'bg-zinc-300 dark:bg-zinc-700'}`}
+            activeOpacity={0.8}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityLabel="Send message"
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: message.trim() ? '#2563eb' : (isDark ? '#374151' : '#e5e7eb'),
+              opacity: (!message.trim() || sendMutation.isPending) ? 0.6 : 1,
+            }}
           >
             <MaterialIcons name="send" size={20} color="#fff" />
           </TouchableOpacity>
         </View>
-      </GlassCard>
-    </View>
+      </View>
+      </View>
+    </KeyboardAvoidingView>
   );
 }

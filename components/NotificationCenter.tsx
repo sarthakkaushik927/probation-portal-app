@@ -36,9 +36,9 @@ export default function NotificationCenter() {
   const unreadCount = notifications?.filter((n: any) => !n.isRead).length || 0;
 
   return (
-    <View className="flex-1 bg-white dark:bg-zinc-950">
+    <View className="flex-1" style={{ paddingTop: 130 }}>
       <View className="flex-row justify-between items-center p-4 border-b-2 border-black dark:border-white">
-        <Text className="text-xl font-bold font-mono dark:text-white">Notifications {unreadCount > 0 && `(${unreadCount})`}</Text>
+        <Text className="text-xl font-bold font-sans text-zinc-900 dark:text-white tracking-tighter uppercase">Notifications {unreadCount > 0 && `(${unreadCount})`}</Text>
         {unreadCount > 0 && (
           <TouchableOpacity 
             className="bg-black dark:bg-white px-4 py-2 rounded-lg"

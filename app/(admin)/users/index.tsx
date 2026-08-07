@@ -12,6 +12,7 @@ import { useColorScheme } from 'nativewind';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { handleFileExport } from '../../../utils/exportHelper';
+import ExportUsersModal from '../../../components/ExportUsersModal';
 
 export default function AdminUsersList() {
   const router = useRouter();
@@ -22,6 +23,7 @@ export default function AdminUsersList() {
   
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isSelectMode, setIsSelectMode] = useState(false);
+  const [exportModalVisible, setExportModalVisible] = useState(false);
 
   const { data: users, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['adminUsers'],
@@ -54,14 +56,13 @@ export default function AdminUsersList() {
     }
   };
 
-  const handleExportSelected = async () => {
-    try {
-      const ids = selectedIds.length > 0 ? selectedIds : undefined;
-      const res = await exportUsersCSV(ids);
-      handleFileExport('users_export.csv', res.data);
-    } catch (e: any) {
-      Alert.alert('Export Error', e?.message || 'Failed to export users');
-    }
+  const handleExportSelected = () => {
+    setExportModalVisible(true);
+  };
+
+  const onGenerateCSV = (csvData: string) => {
+    setExportModalVisible(false);
+    handleFileExport('users_export.csv', csvData);
   };
 
   const handleDelete = (userId: string, userName: string) => {
@@ -143,6 +144,13 @@ export default function AdminUsersList() {
             />
           </View>
         )}
+      />
+
+      <ExportUsersModal 
+        visible={exportModalVisible}
+        onClose={() => setExportModalVisible(false)}
+        users={users || []}
+        onExport={onGenerateCSV}
       />
     </Background>
   );

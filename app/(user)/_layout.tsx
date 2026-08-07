@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Tabs } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import { View, TouchableOpacity, StyleSheet, Text, Platform } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Text, Platform, Animated, Easing } from 'react-native';
 import { useAuthStore } from '../../store/auth';
 import { useRouter } from 'expo-router';
 import { useColorScheme } from 'nativewind';
@@ -10,8 +10,10 @@ import AccountModal from '../../components/AccountModal';
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRealtime } from '../../hooks/useRealtime';
 import { getNotifications } from '../../services/api';
+import { useNotificationsPoll } from '../../hooks/useNotificationsPoll';
 
 export default function UserLayout() {
   const user = useAuthStore(state => state.user);
@@ -30,6 +32,52 @@ export default function UserLayout() {
     queryFn: () => getNotifications().then(res => res.data.data),
     refetchInterval: 60000, // Refresh every minute
   });
+  const queryClient = useQueryClient();
+  const { subscribe } = useRealtime();
+  const [toast, setToast] = useState<string | null>(null);
+  const toastOpacity = useState(new Animated.Value(0))[0];
+
+  const showToast = (text: string) => {
+    setToast(text);
+    Animated.timing(toastOpacity, {
+      toValue: 1,
+      duration: 200,
+      useNativeDriver: true,
+      easing: Easing.out(Easing.ease),
+    }).start(() => {
+      setTimeout(() => {
+        Animated.timing(toastOpacity, { toValue: 0, duration: 200, useNativeDriver: true }).start(() => setToast(null));
+      }, 3500);
+    });
+  };
+
+  useEffect(() => {
+    if (!user?.id) return;
+    const channel = `user-${user.id}`;
+    const unsub = subscribe(channel, 'mention', (data: any) => {
+      try {
+        const from = data?.from?.name || 'Someone';
+        const text = data?.message?.content || '';
+        showToast(`${from}: ${text.length > 120 ? text.slice(0, 120) + '…' : text}`);
+      } catch (e) {
+        // ignore
+      }
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    });
+
+    return () => {
+      try { unsub(); } catch (e) {}
+    };
+  }, [user?.id, subscribe, queryClient]);
+  // Poll for notifications as a fallback (and to ensure mobile notification UX works)
+  useNotificationsPoll((n: any) => {
+    try {
+      const title = n.title || 'Notification';
+      const body = n.body || '';
+      showToast(`${title}: ${body.length > 120 ? body.slice(0, 120) + '…' : body}`);
+    } catch (e) {}
+    queryClient.invalidateQueries({ queryKey: ['notifications'] });
+  }, 5000);
   const unreadCount = notifications?.filter((n: any) => !n.isRead).length || 0;
 
   return (
@@ -151,6 +199,13 @@ export default function UserLayout() {
         }}
       />
     </Tabs>
+    {toast && (
+      <Animated.View pointerEvents="none" style={{ position: 'absolute', top: Platform.OS === 'ios' ? 80 : 40, left: 20, right: 20, alignItems: 'center', opacity: toastOpacity }}>
+        <View style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.75)', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10 }}>
+          <Text style={{ color: '#fff', textAlign: 'center' }}>{toast}</Text>
+        </View>
+      </Animated.View>
+    )}
     <AccountModal visible={isAccountModalVisible} onClose={() => setAccountModalVisible(false)} />
     </>
   );

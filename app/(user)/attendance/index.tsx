@@ -153,6 +153,29 @@ export default function UserAttendance() {
             <StatCard title="Absent/Leave" value={absentDays + leaveDays} />
           </View>
         </View>
+
+        {/* Attendance History */}
+        <Text className="text-lg font-bold text-zinc-900 dark:text-white font-sans mb-3 ml-1 mt-2">Attendance History</Text>
+        {attendance && attendance.length > 0 ? (
+          <GlassCard className="mb-6 p-0">
+            {attendance.map((record: any, index: number) => (
+              <View 
+                key={record.id || index} 
+                className={`flex-row justify-between p-4 ${index !== attendance.length - 1 ? 'border-b border-black dark:border-white' : ''}`}
+              >
+                <Text className="text-zinc-900 dark:text-white font-mono text-sm">{new Date(record.date).toLocaleDateString()}</Text>
+                <Text className={`font-bold font-mono text-xs uppercase tracking-widest ${
+                  record.status === 'PRESENT' ? 'text-zinc-900 dark:text-white' :
+                  record.status === 'ABSENT' ? 'text-zinc-500' : 'text-zinc-600 dark:text-zinc-400'
+                }`}>
+                  {record.status}
+                </Text>
+              </View>
+            ))}
+          </GlassCard>
+        ) : (
+          <Text className="text-zinc-500 italic ml-1 mb-6">No attendance records found.</Text>
+        )}
       </View>
     </ScrollView>
     </Background>

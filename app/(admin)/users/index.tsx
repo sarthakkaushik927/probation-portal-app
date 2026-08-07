@@ -57,7 +57,7 @@ export default function AdminUsersList() {
     try {
       const ids = selectedIds.length > 0 ? selectedIds : undefined;
       const res = await exportUsersCSV(ids);
-      const fileUri = FileSystem.documentDirectory + 'users_export.csv';
+      const fileUri = (FileSystem as any).documentDirectory + 'users_export.csv';
       await FileSystem.writeAsStringAsync(fileUri, res.data);
       await Sharing.shareAsync(fileUri, { mimeType: 'text/csv' });
     } catch (e) {

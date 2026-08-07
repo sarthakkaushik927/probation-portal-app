@@ -143,7 +143,7 @@ export default function UserDetail() {
             onPress={async () => {
               try {
                 const res = await exportUserDataCSV(userId);
-                const fileUri = FileSystem.documentDirectory + `user_${userId}.csv`;
+                const fileUri = (FileSystem as any).documentDirectory + `user_${userId}.csv`;
                 await FileSystem.writeAsStringAsync(fileUri, res.data);
                 await Sharing.shareAsync(fileUri, { mimeType: 'text/csv' });
               } catch { Alert.alert('Error', 'Failed to export user data'); }

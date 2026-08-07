@@ -16,7 +16,7 @@ const signupSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
-  studentType: z.enum(['HOSTELER', 'DAY_SCHOLAR'], { required_error: 'Please select a student type' }),
+  studentType: z.enum(['HOSTELER', 'DAY_SCHOLAR'], { error: 'Please select a student type' }),
   phoneNumber: z.string().min(10, 'Phone number must be at least 10 characters'),
 });
 type SignupForm = z.infer<typeof signupSchema>;

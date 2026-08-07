@@ -219,7 +219,7 @@ export default function AdminDashboard() {
                 onPress={async () => {
                   try {
                     const res = await exportAttendanceCSV();
-                    const fileUri = FileSystem.documentDirectory + 'attendance.csv';
+                    const fileUri = (FileSystem as any).documentDirectory + 'attendance.csv';
                     await FileSystem.writeAsStringAsync(fileUri, res.data);
                     await Sharing.shareAsync(fileUri, { mimeType: 'text/csv' });
                   } catch (e) { Alert.alert('Error', 'Failed to export attendance'); }
@@ -233,7 +233,7 @@ export default function AdminDashboard() {
                 onPress={async () => {
                   try {
                     const res = await exportSubmissionsCSV();
-                    const fileUri = FileSystem.documentDirectory + 'submissions.csv';
+                    const fileUri = (FileSystem as any).documentDirectory + 'submissions.csv';
                     await FileSystem.writeAsStringAsync(fileUri, res.data);
                     await Sharing.shareAsync(fileUri, { mimeType: 'text/csv' });
                   } catch (e) { Alert.alert('Error', 'Failed to export submissions'); }
@@ -247,7 +247,7 @@ export default function AdminDashboard() {
                 onPress={async () => {
                   try {
                     const res = await exportUsersCSV();
-                    const fileUri = FileSystem.documentDirectory + 'users.csv';
+                    const fileUri = (FileSystem as any).documentDirectory + 'users.csv';
                     await FileSystem.writeAsStringAsync(fileUri, res.data);
                     await Sharing.shareAsync(fileUri, { mimeType: 'text/csv' });
                   } catch (e) { Alert.alert('Error', 'Failed to export users'); }

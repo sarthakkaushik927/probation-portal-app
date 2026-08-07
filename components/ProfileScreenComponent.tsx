@@ -7,6 +7,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
+import Animated, { FadeInUp, FadeOutUp } from 'react-native-reanimated';
 import GlassCard from './GlassCard';
 
 export default function ProfileScreenComponent({ isDark }: { isDark: boolean }) {
@@ -15,6 +16,12 @@ export default function ProfileScreenComponent({ isDark }: { isDark: boolean }) 
   const [avatar, setAvatar] = useState<string | null>(user?.avatarData || null);
   const [name, setName] = useState(user?.name || '');
   const [isNameEditing, setIsNameEditing] = useState(false);
+  const [toastMessage, setToastMessage] = useState<{title: string, message: string, type: 'success' | 'error'} | null>(null);
+
+  const showToast = (title: string, message: string, type: 'success' | 'error' = 'success') => {
+    setToastMessage({ title, message, type });
+    setTimeout(() => setToastMessage(null), 3000);
+  };
 
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
@@ -30,10 +37,10 @@ export default function ProfileScreenComponent({ isDark }: { isDark: boolean }) 
       if (user && token) {
         setAuth(token, { ...user, avatarData: newAvatar });
       }
-      Alert.alert('Success', 'Profile photo updated!');
+      showToast('Success', 'Profile photo updated!');
     },
     onError: () => {
-      Alert.alert('Error', 'Failed to update profile photo.');
+      showToast('Error', 'Failed to update profile photo.', 'error');
     }
   });
 
@@ -47,10 +54,10 @@ export default function ProfileScreenComponent({ isDark }: { isDark: boolean }) 
         setAuth(token, { ...user, name: newName });
       }
       setIsNameEditing(false);
-      Alert.alert('Success', 'Name updated successfully!');
+      showToast('Success', 'Name updated successfully!');
     },
     onError: () => {
-      Alert.alert('Error', 'Failed to update name.');
+      showToast('Error', 'Failed to update name.', 'error');
     }
   });
 
@@ -59,7 +66,7 @@ export default function ProfileScreenComponent({ isDark }: { isDark: boolean }) 
       await changePassword(data.currentPassword, data.newPassword);
     },
     onSuccess: () => {
-      Alert.alert('Success', 'Password updated successfully!');
+      showToast('Success', 'Password updated successfully!');
       setShowPasswordModal(false);
       setCurrentPassword('');
       setNewPassword('');
@@ -67,7 +74,7 @@ export default function ProfileScreenComponent({ isDark }: { isDark: boolean }) 
     },
     onError: (error: any) => {
       const msg = error?.response?.data?.error || 'Failed to update password.';
-      Alert.alert('Error', msg);
+      showToast('Error', msg, 'error');
     }
   });
 
@@ -89,15 +96,15 @@ export default function ProfileScreenComponent({ isDark }: { isDark: boolean }) 
 
   const handleChangePassword = () => {
     if (!currentPassword || !newPassword) {
-      Alert.alert('Error', 'Please fill in all fields.');
+      showToast('Error', 'Please fill in all fields.', 'error');
       return;
     }
     if (newPassword.length < 6) {
-      Alert.alert('Error', 'New password must be at least 6 characters.');
+      showToast('Error', 'New password must be at least 6 characters.', 'error');
       return;
     }
     if (newPassword !== confirmPassword) {
-      Alert.alert('Error', 'New passwords do not match.');
+      showToast('Error', 'New passwords do not match.', 'error');
       return;
     }
     passwordMutation.mutate({ currentPassword, newPassword });
@@ -121,6 +128,23 @@ export default function ProfileScreenComponent({ isDark }: { isDark: boolean }) 
 
   return (
     <>
+      {toastMessage && (
+        <Animated.View 
+          entering={FadeInUp.springify()} 
+          exiting={FadeOutUp.duration(300)}
+          className="absolute top-12 left-5 right-5 z-50"
+        >
+          <GlassCard className="flex-row items-center p-4 border-2 border-black dark:border-white shadow-sm" intensity={90}>
+            <View className={`w-10 h-10 rounded-full items-center justify-center mr-3 border-2 ${toastMessage.type === 'success' ? 'border-green-500 bg-green-500/20' : 'border-red-500 bg-red-500/20'}`}>
+              <MaterialIcons name={toastMessage.type === 'success' ? 'check' : 'error-outline'} size={24} color={toastMessage.type === 'success' ? '#10b981' : '#ef4444'} />
+            </View>
+            <View className="flex-1">
+              <Text className="text-zinc-900 dark:text-white font-bold font-sans text-base">{toastMessage.title}</Text>
+              <Text className="text-zinc-500 dark:text-zinc-400 font-sans text-sm">{toastMessage.message}</Text>
+            </View>
+          </GlassCard>
+        </Animated.View>
+      )}
     <ScrollView contentContainerStyle={{ padding: 16 }} showsVerticalScrollIndicator={false}>
       
       {/* Avatar Section */}

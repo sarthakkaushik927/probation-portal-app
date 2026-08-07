@@ -12,6 +12,12 @@ interface User {
   domain?: string;
   isVerified: boolean;
   createdAt: string;
+  studentType?: string;
+  phoneNumber?: string;
+  _count?: {
+    submissions: number;
+    attendance: number;
+  };
 }
 
 interface ExportUsersModalProps {
@@ -25,9 +31,13 @@ interface ExportUsersModalProps {
 const AVAILABLE_FIELDS = [
   { key: 'name', label: 'Name' },
   { key: 'email', label: 'Email' },
+  { key: 'phoneNumber', label: 'Phone' },
   { key: 'role', label: 'Role' },
   { key: 'domain', label: 'Domain' },
+  { key: 'studentType', label: 'Student Type' },
   { key: 'isVerified', label: 'Verified Status' },
+  { key: 'submissions', label: 'Submissions' },
+  { key: 'attendance', label: 'Attendance' },
   { key: 'createdAt', label: 'Joined Date' },
 ];
 
@@ -65,9 +75,13 @@ export default function ExportUsersModal({ visible, onClose, users, initialSelec
       const rowData = [];
       if (selectedFields.includes('name')) rowData.push((u.name || '').replace(/,/g, ' '));
       if (selectedFields.includes('email')) rowData.push(u.email);
+      if (selectedFields.includes('phoneNumber')) rowData.push(u.phoneNumber || 'N/A');
       if (selectedFields.includes('role')) rowData.push(u.role);
       if (selectedFields.includes('domain')) rowData.push(u.domain || 'UNASSIGNED');
+      if (selectedFields.includes('studentType')) rowData.push(u.studentType || 'N/A');
       if (selectedFields.includes('isVerified')) rowData.push(u.isVerified ? 'Yes' : 'No');
+      if (selectedFields.includes('submissions')) rowData.push(u._count?.submissions || 0);
+      if (selectedFields.includes('attendance')) rowData.push(u._count?.attendance || 0);
       if (selectedFields.includes('createdAt')) rowData.push(new Date(u.createdAt).toLocaleDateString());
       return rowData.join(',');
     });

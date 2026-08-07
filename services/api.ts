@@ -3,11 +3,7 @@ import * as SecureStore from 'expo-secure-store';
 
 import { Platform } from 'react-native';
 
-const ENV_URL = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.0.109:4000';
-// Force the IP address instead of 10.0.2.2 so both real phones and emulators work
-const BASE_URL = Platform.OS === 'web' 
-  ? ENV_URL.replace('10.0.2.2', 'localhost') 
-  : ENV_URL.replace('10.0.2.2', '192.168.0.109');
+const BASE_URL = 'https://probation-portal-backend.vercel.app';
 
 const api = axios.create({ baseURL: BASE_URL });
 
@@ -52,6 +48,7 @@ export const getUserTasks = () => api.get('/api/user/tasks');
 export const getUserTask = (taskId: string) => api.get(`/api/user/tasks/${taskId}`);
 export const getUserSubmissions = () => api.get('/api/user/submissions');
 export const createSubmission = (data: object) => api.post('/api/user/submissions', data);
+export const updateSubmission = (taskId: string, data: object) => api.put(`/api/user/submissions`, { taskId, ...data });
 export const getUserAttendance = () => api.get('/api/user/attendance');
 
 // Admin
@@ -70,8 +67,26 @@ export const approveSubmission = (id: string) =>
   api.patch(`/api/admin/submissions/${id}/approve`);
 export const rejectSubmission = (id: string) =>
   api.patch(`/api/admin/submissions/${id}/reject`);
-export const getAdminAttendanceUsers = () => api.get('/api/admin/attendance');
+export const getAdminAttendanceUsers = (date?: string) => 
+  api.get(`/api/admin/attendance${date ? `?date=${encodeURIComponent(date)}` : ''}`);
 export const saveAttendance = (date: string, records: object[]) =>
   api.post('/api/admin/attendance', { date, records });
+
+// Notifications
+export const getNotifications = () => api.get('/api/notifications');
+export const markNotificationRead = (id: string) => api.patch(`/api/notifications/${id}/read`);
+export const broadcastNotification = (title: string, message: string) => 
+  api.post('/api/notifications/broadcast', { title, message });
+
+export const forgotPassword = (email: string) =>
+  api.post('/api/auth/forgot-password', { email });
+export const resetPassword = (email: string, otp: string, newPassword: string) =>
+  api.post('/api/auth/reset-password', { email, otp, newPassword });
+export const updatePassword = (newPassword: string) =>
+  api.post('/api/user/password', { newPassword });
+export const updateAvatar = (avatarData: string) =>
+  api.patch('/api/user/avatar', { avatarData });
+export const savePushToken = (pushToken: string) =>
+  api.patch('/api/user/push-token', { pushToken });
 
 export default api;

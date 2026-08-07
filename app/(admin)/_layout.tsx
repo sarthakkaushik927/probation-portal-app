@@ -1,94 +1,179 @@
-import { Drawer } from 'expo-router/drawer';
+import { useState } from 'react';
+import { Tabs } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import { TouchableOpacity, View, Text } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Text, Platform } from 'react-native';
 import { useAuthStore } from '../../store/auth';
 import { useRouter } from 'expo-router';
+import { useColorScheme } from 'nativewind';
 import ThemeToggle from '../../components/ThemeToggle';
+import AccountModal from '../../components/AccountModal';
+import { BlurView } from 'expo-blur';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Image } from 'expo-image';
 
 export default function AdminLayout() {
-  const clearAuth = useAuthStore(state => state.clearAuth);
+  const user = useAuthStore(state => state.user);
   const router = useRouter();
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  
+  const [isAccountModalVisible, setAccountModalVisible] = useState(false);
 
-  const handleLogout = async () => {
-    await clearAuth();
-    router.replace('/(auth)/login');
-  };
+  const activeColor = isDark ? '#ffffff' : '#000000';
+  const inactiveColor = isDark ? '#71717a' : '#a1a1aa';
+  const borderColor = isDark ? '#ffffff' : '#000000';
+  const tabBgColor = isDark ? 'rgba(9, 9, 11, 0.6)' : 'rgba(255, 255, 255, 0.6)';
+  const insets = useSafeAreaInsets();
 
   return (
-    <Drawer
-      screenOptions={{
-        headerRight: () => (
-          <View className="flex-row items-center gap-3 mr-4">
-            <ThemeToggle />
-            <TouchableOpacity onPress={handleLogout}>
-              <MaterialIcons name="logout" size={24} color="#ef4444" />
-            </TouchableOpacity>
-          </View>
-        ),
+    <>
+      <Tabs
+        screenOptions={{
+          headerShown: true,
+          headerTransparent: true,
+          tabBarActiveTintColor: activeColor,
+          tabBarInactiveTintColor: inactiveColor,
+          tabBarHideOnKeyboard: true,
+          tabBarBackground: () => (
+            <BlurView tint={isDark ? "dark" : "light"} intensity={80} style={StyleSheet.absoluteFill} />
+          ),
+        tabBarStyle: {
+          position: 'absolute',
+          bottom: Math.max(insets.bottom + 10, 24),
+          marginHorizontal: 20,
+          elevation: 0,
+          backgroundColor: tabBgColor,
+          borderWidth: 2,
+          borderColor: borderColor,
+          borderRadius: 100,
+          height: 72,
+          overflow: 'hidden',
+          paddingBottom: 6, // Give space for text labels
+        },
+        tabBarItemStyle: {
+          paddingTop: 8,
+          paddingBottom: 4,
+        },
+        header: ({ options }) => {
+          return (
+            <View style={{ paddingTop: Math.max(insets.top, 10), paddingBottom: 10, backgroundColor: 'transparent' }} className="px-5">
+              <View className="flex-row items-center justify-between">
+                <View className="rounded-full border-2 border-black dark:border-white overflow-hidden">
+                  <BlurView tint={isDark ? 'dark' : 'light'} intensity={80} className="px-5 py-2.5">
+                    <Text className="font-bold font-sans text-xl text-zinc-900 dark:text-white">
+                      {options.title || 'Dashboard'}
+                    </Text>
+                  </BlurView>
+                </View>
+                <View className="rounded-full border-2 border-black dark:border-white overflow-hidden">
+                  <BlurView tint={isDark ? 'dark' : 'light'} intensity={80} className="flex-row items-center gap-2 px-3 py-1.5">
+                    <TouchableOpacity onPress={() => router.push('/(admin)/notifications')} className="items-center justify-center w-9 h-9">
+                      <MaterialIcons name="notifications" size={22} color={activeColor} />
+                    </TouchableOpacity>
+                    <View className="w-9 h-9 items-center justify-center">
+                      <ThemeToggle />
+                    </View>
+                    <TouchableOpacity onPress={() => setAccountModalVisible(true)} className="items-center justify-center w-9 h-9 overflow-hidden rounded-full border border-transparent dark:border-zinc-800">
+                      {user?.avatarData ? (
+                        <Image source={{ uri: user.avatarData }} style={{ width: '100%', height: '100%' }} contentFit="cover" />
+                      ) : (
+                        <MaterialIcons name="person" size={24} color={activeColor} />
+                      )}
+                    </TouchableOpacity>
+                  </BlurView>
+                </View>
+              </View>
+            </View>
+          );
+        },
       }}>
-      <Drawer.Screen
+      <Tabs.Screen
         name="dashboard"
         options={{
           title: 'Dashboard',
-          drawerIcon: ({ color }) => <MaterialIcons name="dashboard" size={24} color={color} />,
+          headerTitle: 'Dashboard',
+          tabBarIcon: ({ color }: { color: string }) => <MaterialIcons name="dashboard" size={28} color={color} />,
         }}
       />
-      <Drawer.Screen
+      <Tabs.Screen
         name="users/index"
         options={{
           title: 'Users',
-          drawerIcon: ({ color }) => <MaterialIcons name="people" size={24} color={color} />,
+          headerTitle: 'Users',
+          tabBarIcon: ({ color }: { color: string }) => <MaterialIcons name="people" size={26} color={color} />,
         }}
       />
-      <Drawer.Screen
+      <Tabs.Screen
         name="users/[userId]"
         options={{
-          drawerItemStyle: { display: 'none' }, // Hide from drawer
+          href: null,
+          headerShown: true,
           headerTitle: 'User Detail',
         }}
       />
-      <Drawer.Screen
+      <Tabs.Screen
         name="tasks/index"
         options={{
           title: 'Tasks',
-          drawerIcon: ({ color }) => <MaterialIcons name="assignment" size={24} color={color} />,
+          headerTitle: 'Tasks',
+          tabBarIcon: ({ color }: { color: string }) => <MaterialIcons name="assignment" size={26} color={color} />,
         }}
       />
-      <Drawer.Screen
+      <Tabs.Screen
         name="tasks/create"
         options={{
-          drawerItemStyle: { display: 'none' },
+          href: null,
+          headerShown: true,
           headerTitle: 'Create Task',
         }}
       />
-      <Drawer.Screen
+      <Tabs.Screen
         name="tasks/[taskId]"
         options={{
-          drawerItemStyle: { display: 'none' },
+          href: null,
+          headerShown: true,
           headerTitle: 'Edit Task',
         }}
       />
-      <Drawer.Screen
+      <Tabs.Screen
         name="submissions/index"
         options={{
-          title: 'Submissions',
-          drawerIcon: ({ color }) => <MaterialIcons name="inbox" size={24} color={color} />,
+          title: 'Reviews',
+          headerTitle: 'Reviews',
+          tabBarIcon: ({ color }: { color: string }) => <MaterialIcons name="inbox" size={26} color={color} />,
         }}
       />
-      <Drawer.Screen
+      <Tabs.Screen
         name="submissions/[submissionId]"
         options={{
-          drawerItemStyle: { display: 'none' },
+          href: null,
+          headerShown: true,
           headerTitle: 'Review Submission',
         }}
       />
-      <Drawer.Screen
+      <Tabs.Screen
         name="attendance/index"
         options={{
+          href: null,
           title: 'Attendance',
-          drawerIcon: ({ color }) => <MaterialIcons name="event-available" size={24} color={color} />,
+          tabBarIcon: ({ color }: { color: string }) => <MaterialIcons name="event-available" size={26} color={color} />,
         }}
       />
-    </Drawer>
+      <Tabs.Screen
+        name="notifications"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          href: null,
+          title: 'Profile',
+        }}
+      />
+    </Tabs>
+    <AccountModal visible={isAccountModalVisible} onClose={() => setAccountModalVisible(false)} />
+    </>
   );
 }

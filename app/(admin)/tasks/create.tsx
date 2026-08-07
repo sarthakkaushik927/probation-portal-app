@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createTask } from '../../../services/api';
@@ -37,13 +37,13 @@ export default function CreateTask() {
   };
 
   return (
-    <ScrollView className="flex-1 bg-white dark:bg-slate-900 p-4">
+    <ScrollView className="flex-1 bg-white dark:bg-zinc-950 p-5">
       <Stack.Screen options={{ title: 'Create Task' }} />
       
       <View className="mb-4">
         <Text className="text-gray-700 dark:text-slate-300 font-semibold mb-2 ml-1">Title</Text>
         <TextInput
-          className="w-full bg-gray-50 dark:bg-slate-800 p-4 rounded-xl border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white"
+          className="w-full bg-white dark:bg-zinc-900 p-4 rounded-xl border-[3px] border-black dark:border-white text-zinc-900 dark:text-white font-mono"
           placeholder="Task title"
           placeholderTextColor="#9ca3af"
           value={title}
@@ -54,7 +54,7 @@ export default function CreateTask() {
       <View className="mb-4">
         <Text className="text-gray-700 dark:text-slate-300 font-semibold mb-2 ml-1">Description</Text>
         <TextInput
-          className="w-full bg-gray-50 dark:bg-slate-800 p-4 rounded-xl border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white min-h-[100px]"
+          className="w-full bg-white dark:bg-zinc-900 p-5 rounded-xl border-[3px] border-black dark:border-white text-zinc-900 dark:text-white font-mono min-h-[120px]"
           placeholder="Detailed task description..."
           placeholderTextColor="#9ca3af"
           multiline
@@ -71,13 +71,13 @@ export default function CreateTask() {
             <TouchableOpacity
               key={d}
               onPress={() => setDomain(d)}
-              className={`px-3 py-2 rounded-lg border ${
+              className={`px-4 py-2.5 rounded-xl border-[3px] border-black dark:border-white ${
                 domain === d 
-                  ? 'bg-blue-50 border-blue-500 dark:bg-blue-900/30 dark:border-blue-500' 
-                  : 'bg-white border-gray-200 dark:bg-slate-800 dark:border-slate-700'
+                  ? 'bg-blue-500' 
+                  : 'bg-white dark:bg-zinc-900'
               }`}
             >
-              <Text className={`${domain === d ? 'text-blue-600 dark:text-blue-400 font-bold' : 'text-gray-600 dark:text-slate-400'}`}>
+              <Text className={`font-mono font-bold text-xs uppercase tracking-wider ${domain === d ? 'text-zinc-900 dark:text-white' : 'text-zinc-500 dark:text-zinc-400'}`}>
                 {d}
               </Text>
             </TouchableOpacity>
@@ -88,10 +88,10 @@ export default function CreateTask() {
       <View className="mb-8">
         <Text className="text-gray-700 dark:text-slate-300 font-semibold mb-2 ml-1">Deadline</Text>
         <TouchableOpacity 
-          className="w-full bg-gray-50 dark:bg-slate-800 p-4 rounded-xl border border-gray-200 dark:border-slate-700"
+          className="w-full bg-white dark:bg-zinc-900 p-4 rounded-xl border-[3px] border-black dark:border-white items-center"
           onPress={() => setShowDatePicker(true)}
         >
-          <Text className="text-gray-900 dark:text-white">{deadline.toLocaleDateString()} {deadline.toLocaleTimeString()}</Text>
+          <Text className="text-zinc-900 dark:text-white font-mono font-bold uppercase tracking-widest">{deadline.toLocaleDateString()} {deadline.toLocaleTimeString()}</Text>
         </TouchableOpacity>
         
         {showDatePicker && (
@@ -107,11 +107,14 @@ export default function CreateTask() {
       </View>
 
       <TouchableOpacity 
-        className={`w-full p-4 rounded-xl items-center mb-6 shadow-sm ${createMutation.isPending ? 'bg-blue-400' : 'bg-blue-600'}`}
+        className={`w-full py-4 px-6 rounded-xl items-center mb-12 border-[3px] border-black dark:border-white ${createMutation.isPending ? 'bg-zinc-300 dark:bg-zinc-700' : 'bg-[#e0e7ff] dark:bg-blue-900'} flex-row justify-center`}
         onPress={handleCreate}
         disabled={createMutation.isPending}
       >
-        <Text className="text-white text-lg font-bold">
+        {createMutation.isPending && (
+          <ActivityIndicator size="small" color="#71717a" style={{ marginRight: 8 }} />
+        )}
+        <Text className="text-zinc-900 dark:text-white font-mono text-lg font-bold uppercase tracking-widest mr-2">
           {createMutation.isPending ? 'Creating...' : 'Create Task'}
         </Text>
       </TouchableOpacity>

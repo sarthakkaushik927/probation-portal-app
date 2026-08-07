@@ -1,7 +1,9 @@
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
+import { useColorScheme } from 'nativewind';
 import { Task } from '../types';
-import { getDomainColor } from '../constants/domains';
+import DomainSwatch from './DomainSwatch';
 
 interface TaskCardProps {
   task: Task;
@@ -9,32 +11,47 @@ interface TaskCardProps {
 }
 
 export default function TaskCard({ task, onPress }: TaskCardProps) {
-  const domainColor = getDomainColor(task.domain);
-  const formattedDate = new Date(task.deadline).toLocaleDateString();
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const formattedDate = new Date(task.deadline).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
 
   return (
     <TouchableOpacity 
-      activeOpacity={0.7} 
+      className="rounded-xl border-[3px] border-black dark:border-white mb-4 overflow-hidden relative"
       onPress={onPress}
-      className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 mb-3"
+      activeOpacity={0.7}
       disabled={!onPress}
     >
-      <View className="flex-row justify-between items-start mb-2">
-        <Text className="flex-1 text-lg font-bold text-gray-900 dark:text-white mr-2" numberOfLines={1}>
-          {task.title}
-        </Text>
-        <View className={`${domainColor} px-2 py-1 rounded-md`}>
-          <Text className="text-white text-xs font-bold">{task.domain}</Text>
+      <BlurView tint={isDark ? "dark" : "light"} intensity={60} style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? 'rgba(9, 9, 11, 0.5)' : 'rgba(255, 255, 255, 0.5)' }]} />
+      <View className="p-4 relative z-10 w-full h-full">
+        <View className="flex-row items-center justify-between mb-3">
+          <View className="flex-1">
+            <Text className="text-lg font-bold font-sans text-zinc-900 dark:text-white" numberOfLines={1}>
+              {task.title}
+            </Text>
+            <View className="flex-row items-center mt-1">
+              <DomainSwatch domain={task.domain} size={12} className="mr-2" />
+              <Text className="text-[10px] font-bold font-mono text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                {task.domain}
+              </Text>
+            </View>
+          </View>
+          <MaterialIcons name="chevron-right" size={20} color="#A1A1AA" />
         </View>
-      </View>
-      
-      <Text className="text-gray-600 dark:text-slate-300 text-sm mb-4" numberOfLines={2}>
-        {task.description}
-      </Text>
-      
-      <View className="flex-row items-center pt-3 border-t border-gray-50 dark:border-slate-700">
-        <MaterialIcons name="event" size={16} color="#6b7280" />
-        <Text className="text-gray-500 dark:text-slate-400 text-xs ml-1 font-medium">Due: {formattedDate}</Text>
+        
+        <Text className="text-zinc-500 dark:text-zinc-400 font-sans text-sm leading-snug mb-3" numberOfLines={2}>
+          {task.description}
+        </Text>
+        
+        <View className="flex-row items-center justify-between pt-3 border-t border-black dark:border-white">
+          <View className="flex-row items-center">
+            <MaterialIcons name="event" size={14} color="#A1A1AA" />
+            <Text className="text-zinc-900 dark:text-white font-mono text-sm ml-1.5 font-medium">{formattedDate}</Text>
+          </View>
+          <View className="flex-row items-center px-3 py-1.5 rounded-md border border-black dark:border-white bg-white dark:bg-zinc-950/50">
+            <Text className="text-zinc-900 dark:text-white font-mono text-[10px] font-bold uppercase tracking-widest">Details</Text>
+          </View>
+        </View>
       </View>
     </TouchableOpacity>
   );

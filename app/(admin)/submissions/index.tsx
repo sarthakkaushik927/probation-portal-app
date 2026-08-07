@@ -5,6 +5,8 @@ import SubmissionCard from '../../../components/SubmissionCard';
 import LoadingSpinner from '../../../components/LoadingSpinner';
 import EmptyState from '../../../components/EmptyState';
 import { Stack, useRouter } from 'expo-router';
+import Background from '../../../components/Background';
+
 
 export default function AdminSubmissionsList() {
   const router = useRouter();
@@ -37,12 +39,12 @@ export default function AdminSubmissionsList() {
   if (isLoading) return <LoadingSpinner />;
 
   return (
-    <View className="flex-1 bg-gray-50 dark:bg-slate-900">
+    <Background>
       <Stack.Screen options={{ title: 'All Submissions', headerShown: true }} />
       <FlatList
         data={submissions}
         keyExtractor={(item: any) => item.id}
-        contentContainerStyle={{ padding: 16 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 140, paddingTop: 90 }}
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
         ListEmptyComponent={<EmptyState title="No submissions found" message="No one has submitted tasks yet." />}
         renderItem={({ item }: { item: any }) => (
@@ -65,6 +67,6 @@ export default function AdminSubmissionsList() {
           />
         )}
       />
-    </View>
+    </Background>
   );
 }

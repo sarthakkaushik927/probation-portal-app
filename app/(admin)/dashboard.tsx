@@ -1,22 +1,63 @@
-import { View, Text, ScrollView, RefreshControl } from 'react-native';
+import { View, Text, ScrollView, RefreshControl, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
-import { getAdminDashboard } from '../../services/api';
+import { getAdminDashboard, getAdminSubmissions, approveSubmission, rejectSubmission, broadcastNotification } from '../../services/api';
 import { useAuthStore } from '../../store/auth';
-import StatCard from '../../components/StatCard';
 import Skeleton from '../../components/Skeleton';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { MaterialIcons } from '@expo/vector-icons';
+import SubmissionCard from '../../components/SubmissionCard';
+import { useRouter, Link } from 'expo-router';
+import GlassCard from '../../components/GlassCard';
+import { useColorScheme } from 'nativewind';
+import { useState } from 'react';
+import Background from '../../components/Background';
 
 export default function AdminDashboard() {
   const user = useAuthStore(state => state.user);
+  const router = useRouter();
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const iconColor = isDark ? '#ffffff' : '#000000';
+  
+  const [broadcastTitle, setBroadcastTitle] = useState('');
+  const [broadcastMessage, setBroadcastMessage] = useState('');
+  const [isBroadcasting, setIsBroadcasting] = useState(false);
+  
   const { data, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['adminDashboard'],
     queryFn: () => getAdminDashboard().then(res => res.data.data),
   });
 
+  const { data: submissions, isLoading: submissionsLoading, refetch: refetchSubmissions, isRefetching: isRefetchingSubs } = useQuery({
+    queryKey: ['adminSubmissions'],
+    queryFn: () => getAdminSubmissions().then(res => res.data.data),
+  });
+
+  const handleBroadcast = async () => {
+    if (!broadcastTitle || !broadcastMessage) {
+      Alert.alert('Error', 'Please enter a title and message');
+      return;
+    }
+    try {
+      setIsBroadcasting(true);
+      await broadcastNotification(broadcastTitle, broadcastMessage);
+      Alert.alert('Success', 'Broadcast notification sent to all users!');
+      setBroadcastTitle('');
+      setBroadcastMessage('');
+    } catch (error: any) {
+      Alert.alert('Error', error.response?.data?.error || 'Failed to send broadcast');
+    } finally {
+      setIsBroadcasting(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    await Promise.all([refetch(), refetchSubmissions()]);
+  };
+
   if (isLoading) {
     return (
-      <View className="flex-1 bg-gray-50 dark:bg-gray-900 p-6">
+      <View className="flex-1 bg-white dark:bg-zinc-950 p-6">
         <Skeleton width="60%" height={36} className="mb-2 mt-4" />
         <Skeleton width="80%" height={20} className="mb-8" />
         <Skeleton width="40%" height={24} className="mb-4" />
@@ -30,42 +71,162 @@ export default function AdminDashboard() {
   }
 
   return (
-    <ScrollView 
-      className="flex-1 bg-gray-50 dark:bg-slate-900"
-      refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
-    >
-      <View className="p-6">
-        <Text className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          Hello, {user?.name?.split(' ')[0] || 'Admin'} 👋
-        </Text>
-        <Text className="text-gray-500 dark:text-slate-400 mb-8">Here is what's happening today.</Text>
+    <Background>
+      <ScrollView 
+        className="flex-1"
+        contentContainerStyle={{ paddingBottom: 140, paddingTop: 90 }}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={isRefetching || isRefetchingSubs} onRefresh={handleRefresh} />}
+      >
+        <Animated.View entering={FadeInDown.duration(500)}>
 
-        <Text className="text-lg font-bold text-gray-800 dark:text-slate-200 mb-4">Overview</Text>
-        
-        <Animated.View 
-          className="flex-col"
-          entering={FadeInDown.duration(500)}
-        >
-          <StatCard 
-            title="Total Users" 
-            value={data?.totalUsers || 0} 
-            icon={<MaterialIcons name="people" size={24} color="#3b82f6" />}
-            colorClass="bg-blue-500"
-          />
-          <StatCard 
-            title="Active Tasks" 
-            value={data?.activeTasks || 0} 
-            icon={<MaterialIcons name="assignment" size={24} color="#10b981" />}
-            colorClass="bg-green-500"
-          />
-          <StatCard 
-            title="Pending Reviews" 
-            value={data?.pendingReviews || 0} 
-            icon={<MaterialIcons name="rate-review" size={24} color="#f59e0b" />}
-            colorClass="bg-yellow-500"
-          />
+
+          {/* Icon Grid */}
+          <View className="flex-row justify-between mb-8 px-5 mt-4">
+            <Link href="/(admin)/users" asChild>
+              <TouchableOpacity className="items-center">
+                <View className="w-14 h-14 bg-zinc-100 dark:bg-zinc-900 rounded-2xl items-center justify-center mb-1 border border-black dark:border-white">
+                  <MaterialIcons name="people" size={26} color={iconColor} />
+                </View>
+                <Text className="text-xs font-medium text-zinc-900 dark:text-white">Users</Text>
+              </TouchableOpacity>
+            </Link>
+            <Link href="/(admin)/tasks" asChild>
+              <TouchableOpacity className="items-center">
+                <View className="w-14 h-14 bg-zinc-100 dark:bg-zinc-900 rounded-2xl items-center justify-center mb-1 border border-black dark:border-white">
+                  <MaterialIcons name="assignment" size={26} color={iconColor} />
+                </View>
+                <Text className="text-xs font-medium text-zinc-900 dark:text-white">Tasks</Text>
+              </TouchableOpacity>
+            </Link>
+            <Link href="/(admin)/submissions" asChild>
+              <TouchableOpacity className="items-center">
+                <View className="w-14 h-14 bg-zinc-100 dark:bg-zinc-900 rounded-2xl items-center justify-center mb-1 border border-black dark:border-white">
+                  <MaterialIcons name="rate-review" size={26} color={iconColor} />
+                </View>
+                <Text className="text-xs font-medium text-zinc-900 dark:text-white">Reviews</Text>
+              </TouchableOpacity>
+            </Link>
+            <Link href="/(admin)/attendance" asChild>
+              <TouchableOpacity className="items-center">
+                <View className="w-14 h-14 bg-zinc-100 dark:bg-zinc-900 rounded-2xl items-center justify-center mb-1 border border-black dark:border-white">
+                  <MaterialIcons name="calendar-month" size={26} color={iconColor} />
+                </View>
+                <Text className="text-xs font-medium text-zinc-900 dark:text-white">Attendance</Text>
+              </TouchableOpacity>
+            </Link>
+          </View>
+
+          {/* Quick Stats Section */}
+          <View className="px-5 mb-2">
+            <Text className="text-sm font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">Platform Stats</Text>
+          </View>
+          
+          <View className="px-5 mb-8">
+            <GlassCard className="p-0">
+              <View className="flex-row justify-between items-center p-4 border-b border-black dark:border-white">
+                <View className="flex-row items-center">
+                  <MaterialIcons name="people" size={22} color={iconColor} />
+                  <Text className="ml-3 text-base text-zinc-900 dark:text-white font-medium">Total Users</Text>
+                </View>
+                <Text className="text-lg font-bold font-mono text-zinc-500 dark:text-zinc-400">{data?.totalUsers || 0}</Text>
+              </View>
+              <View className="flex-row justify-between items-center p-4 border-b border-black dark:border-white">
+                <View className="flex-row items-center">
+                  <MaterialIcons name="assignment" size={22} color={iconColor} />
+                  <Text className="ml-3 text-base text-zinc-900 dark:text-white font-medium">Active Tasks</Text>
+                </View>
+                <Text className="text-lg font-bold font-mono text-zinc-500 dark:text-zinc-400">{data?.activeTasks || 0}</Text>
+              </View>
+              <View className="flex-row justify-between items-center p-4">
+                <View className="flex-row items-center">
+                  <MaterialIcons name="rate-review" size={22} color={iconColor} />
+                  <Text className="ml-3 text-base text-zinc-900 dark:text-white font-medium">Pending Reviews</Text>
+                </View>
+                <Text className="text-lg font-bold font-mono text-zinc-500 dark:text-zinc-400">{data?.pendingReviews || 0}</Text>
+              </View>
+            </GlassCard>
+          </View>
+
+          <View className="px-5 mb-2 mt-4">
+            <Text className="text-sm font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">Broadcast Notification</Text>
+          </View>
+
+          <View className="px-5 mb-8">
+            <GlassCard className="p-4">
+              <View className="mb-4">
+                <Text className="text-zinc-900 dark:text-white font-bold mb-2">Title</Text>
+                <TextInput
+                  value={broadcastTitle}
+                  onChangeText={setBroadcastTitle}
+                  placeholder="E.g., Meeting at 5 PM"
+                  placeholderTextColor={isDark ? "#52525b" : "#a1a1aa"}
+                  className="bg-zinc-100 dark:bg-zinc-900 border-2 border-black dark:border-white rounded-xl px-4 py-3 text-zinc-900 dark:text-white font-medium"
+                />
+              </View>
+              <View className="mb-4">
+                <Text className="text-zinc-900 dark:text-white font-bold mb-2">Message</Text>
+                <TextInput
+                  value={broadcastMessage}
+                  onChangeText={setBroadcastMessage}
+                  placeholder="Enter your notification message here..."
+                  placeholderTextColor={isDark ? "#52525b" : "#a1a1aa"}
+                  multiline
+                  numberOfLines={3}
+                  className="bg-zinc-100 dark:bg-zinc-900 border-2 border-black dark:border-white rounded-xl px-4 py-3 text-zinc-900 dark:text-white font-medium"
+                  style={{ textAlignVertical: 'top' }}
+                />
+              </View>
+              <TouchableOpacity 
+                onPress={handleBroadcast}
+                disabled={isBroadcasting}
+                className={`py-4 rounded-xl items-center border-2 border-black dark:border-white flex-row justify-center ${isBroadcasting ? 'bg-zinc-300 dark:bg-zinc-700' : 'bg-black dark:bg-white'}`}
+              >
+                <MaterialIcons name="campaign" size={20} color={isBroadcasting ? (isDark ? "#a1a1aa" : "#71717a") : (isDark ? "#000000" : "#ffffff")} className="mr-2" />
+                <Text className={`font-black uppercase tracking-widest ml-2 ${isBroadcasting ? 'text-zinc-500 dark:text-zinc-400' : 'text-white dark:text-black'}`}>
+                  {isBroadcasting ? 'Sending...' : 'Send to All Users'}
+                </Text>
+              </TouchableOpacity>
+            </GlassCard>
+          </View>
+
+          {/* Pending Reviews Section */}
+          <View className="flex-row justify-between items-end mb-2 px-5">
+            <Text className="text-sm font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">Needs Review</Text>
+            <Text 
+              className="text-sm font-bold text-zinc-900 dark:text-white"
+              onPress={() => router.push('/(admin)/submissions')}
+            >
+              See All
+            </Text>
+          </View>
+
+          {submissionsLoading ? (
+            <Skeleton width="100%" height={100} className="mb-3 rounded-[24px]" />
+          ) : (
+            submissions?.filter((s: any) => s.status === 'PENDING').slice(0, 3).length > 0 ? (
+              submissions?.filter((s: any) => s.status === 'PENDING').slice(0, 3).map((submission: any) => (
+                <SubmissionCard 
+                  key={submission.id}
+                  submission={submission}
+                  onPress={() => router.push(`/(admin)/submissions/${submission.id}`)}
+                />
+              ))
+            ) : (
+              <View className="px-5 mb-8">
+                <GlassCard className="items-center justify-center py-8">
+                  <View className="border-2 border-black dark:border-white w-16 h-16 rounded-full items-center justify-center mb-4">
+                    <MaterialIcons name="done-all" size={32} color={iconColor} />
+                  </View>
+                  <Text className="text-zinc-900 dark:text-white font-bold text-lg mb-1">All Caught Up!</Text>
+                  <Text className="text-zinc-500 dark:text-zinc-400 text-center">No pending submissions to review right now.</Text>
+                </GlassCard>
+              </View>
+            )
+          )}
+
         </Animated.View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </Background>
   );
 }

@@ -9,6 +9,7 @@ export interface User {
   email: string;
   role: Role;
   domain: Domain | null;
+  avatarData?: string | null;
   isVerified?: boolean;
 }
 

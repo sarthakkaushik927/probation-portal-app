@@ -1,7 +1,9 @@
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Submission } from '../types';
 import * as Linking from 'expo-linking';
 import { MaterialIcons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
+import { useColorScheme } from 'nativewind';
 
 interface SubmissionCardProps {
   submission: Submission;
@@ -12,75 +14,83 @@ interface SubmissionCardProps {
 }
 
 export default function SubmissionCard({ submission, onPress, isAdmin, onApprove, onReject }: SubmissionCardProps) {
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'APPROVED': return 'bg-green-100 text-green-800 border-green-200';
-      case 'REJECTED': return 'bg-red-100 text-red-800 border-red-200';
-      default: return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
+
+  const getStatusStyle = () => {
+    switch(submission.status) {
+      case 'APPROVED': return { borderStyle: 'border-solid border-white', icon: 'check-circle' };
+      case 'REJECTED': return { borderStyle: 'border-dashed border-zinc-500', icon: 'cancel' };
+      default: return { borderStyle: 'border-dotted border-zinc-600', icon: 'schedule' };
     }
   };
 
-  const statusStyle = getStatusColor(submission.status);
+  const statusStyle = getStatusStyle();
 
   return (
-    <View className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 mb-3 overflow-hidden">
+    <View className="rounded-xl border-[3px] border-black dark:border-white mb-4 overflow-hidden relative">
+      <BlurView tint={isDark ? "dark" : "light"} intensity={60} style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? 'rgba(9, 9, 11, 0.5)' : 'rgba(255, 255, 255, 0.5)' }]} />
+      
       <TouchableOpacity 
-        activeOpacity={0.7} 
+        className="p-4 relative z-10 w-full"
         onPress={onPress}
+        activeOpacity={0.7}
         disabled={!onPress}
-        className="p-4"
       >
-        <View className="flex-row justify-between items-start mb-2">
-          <View className="flex-1 mr-2">
-            <Text className="text-sm font-semibold text-gray-500 dark:text-slate-400 mb-0.5">
-              {submission.user?.name || 'Unknown User'}
-            </Text>
-            <Text className="text-lg font-bold text-gray-900 dark:text-white" numberOfLines={1}>
+        <View className="flex-row items-center mb-3">
+          <View className={`w-10 h-10 rounded-full items-center justify-center mr-3 border bg-white dark:bg-zinc-950 ${statusStyle.borderStyle}`}>
+            <MaterialIcons name={statusStyle.icon as any} size={20} color="#FFFFFF" />
+          </View>
+          <View className="flex-1">
+            <Text className="text-lg font-bold font-sans text-zinc-900 dark:text-white" numberOfLines={1}>
               {submission.task?.title || 'Unknown Task'}
             </Text>
+            <Text className="text-xs font-mono text-zinc-500 dark:text-zinc-400 font-medium uppercase tracking-wider mt-0.5">
+              {submission.user?.name || 'Unknown User'}
+            </Text>
           </View>
-          <View className={`px-2 py-1 rounded border ${statusStyle.split(' ').slice(0, 3).join(' ')}`}>
-            <Text className={`text-xs font-bold ${statusStyle.split(' ')[1]}`}>{submission.status}</Text>
-          </View>
+          <MaterialIcons name="chevron-right" size={20} color="#A1A1AA" />
         </View>
 
-        <View className="flex-row mt-2 gap-3">
+        <View className="flex-row mt-1 gap-2 mb-3">
           <TouchableOpacity 
-            className="flex-row items-center"
+            className="flex-row items-center bg-white dark:bg-zinc-950 border border-zinc-500 px-3 py-1.5 rounded"
             onPress={() => Linking.openURL(submission.githubLink)}
           >
-            <MaterialIcons name="code" size={16} color="#3b82f6" />
-            <Text className="text-blue-500 dark:text-blue-400 text-sm font-medium ml-1">GitHub</Text>
+            <MaterialIcons name="code" size={16} color="#FFFFFF" />
+            <Text className="text-zinc-900 dark:text-white font-mono text-xs font-bold uppercase tracking-widest ml-1.5">GitHub</Text>
           </TouchableOpacity>
           <TouchableOpacity 
-            className="flex-row items-center"
+            className="flex-row items-center bg-white dark:bg-zinc-950 border border-zinc-500 px-3 py-1.5 rounded"
             onPress={() => Linking.openURL(submission.demoLink)}
           >
-            <MaterialIcons name="link" size={16} color="#3b82f6" />
-            <Text className="text-blue-500 dark:text-blue-400 text-sm font-medium ml-1">Demo</Text>
+            <MaterialIcons name="link" size={16} color="#FFFFFF" />
+            <Text className="text-zinc-900 dark:text-white font-mono text-xs font-bold uppercase tracking-widest ml-1.5">Demo</Text>
           </TouchableOpacity>
         </View>
         
         {submission.remarks && (
-          <View className="mt-3 bg-gray-50 dark:bg-slate-700 p-2 rounded border border-gray-100 dark:border-slate-600">
-            <Text className="text-gray-600 dark:text-slate-300 text-sm italic">"{submission.remarks}"</Text>
+          <View className="bg-zinc-100 dark:bg-zinc-900 p-3 rounded-lg border border-[#333]">
+            <Text className="text-zinc-500 dark:text-zinc-400 font-sans text-sm font-medium leading-relaxed">"{submission.remarks}"</Text>
           </View>
         )}
       </TouchableOpacity>
 
       {isAdmin && submission.status === 'PENDING' && (
-        <View className="flex-row border-t border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-700/50">
+        <View className="flex-row gap-3 mt-4 pt-4 border-t border-black dark:border-white">
           <TouchableOpacity 
-            className="flex-1 py-3 items-center border-r border-gray-100 dark:border-slate-700"
-            onPress={onReject}
-          >
-            <Text className="text-red-500 font-bold">REJECT</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            className="flex-1 py-3 items-center"
+            className="flex-1 flex-row justify-center items-center py-2 rounded-md border border-solid border-white"
             onPress={onApprove}
           >
-            <Text className="text-green-600 dark:text-green-400 font-bold">APPROVE</Text>
+            <MaterialIcons name="check" size={14} color="#FFFFFF" className="mr-2" />
+            <Text className="text-zinc-900 dark:text-white font-mono tracking-widest text-[10px] uppercase">APPROVE</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            className="flex-1 flex-row justify-center items-center py-2 rounded-md border border-dashed border-zinc-500"
+            onPress={onReject}
+          >
+            <MaterialIcons name="close" size={14} color="#71717a" className="mr-2" />
+            <Text className="text-zinc-600 dark:text-zinc-400 font-mono tracking-widest text-[10px] uppercase">REJECT</Text>
           </TouchableOpacity>
         </View>
       )}

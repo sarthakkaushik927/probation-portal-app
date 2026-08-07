@@ -1,16 +1,22 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getUserTask, createSubmission } from '../../../services/api';
-import { getDomainColor } from '../../../constants/domains';
+import { getUserTask, createSubmission, updateSubmission } from '../../../services/api';
+import DomainSwatch from '../../../components/DomainSwatch';
 import LoadingSpinner from '../../../components/LoadingSpinner';
+import GlassCard from '../../../components/GlassCard';
+import { MaterialIcons } from '@expo/vector-icons';
+import Background from '../../../components/Background';
+
 
 export default function UserTaskDetail() {
   const { taskId } = useLocalSearchParams<{ taskId: string }>();
   const [githubLink, setGithubLink] = useState('');
   const [demoLink, setDemoLink] = useState('');
   const [remarks, setRemarks] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
   
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -18,6 +24,7 @@ export default function UserTaskDetail() {
   const { data: result, isLoading } = useQuery({
     queryKey: ['userTask', taskId],
     queryFn: () => getUserTask(taskId).then(res => res.data.data),
+    enabled: !!taskId,
   });
 
   const submitMutation = useMutation({
@@ -33,85 +40,146 @@ export default function UserTaskDetail() {
     }
   });
 
+  const updateMutation = useMutation({
+    mutationFn: () => updateSubmission(taskId, { githubLink, demoLink, remarks }),
+    onSuccess: () => {
+      Alert.alert('Success', 'Submission updated successfully!');
+      setIsEditing(false);
+      queryClient.invalidateQueries({ queryKey: ['userTask', taskId] });
+      queryClient.invalidateQueries({ queryKey: ['userSubmissions'] });
+    },
+    onError: (error: any) => {
+      Alert.alert('Error', error.response?.data?.error || 'Failed to update submission');
+    }
+  });
+
   const handleSubmit = () => {
     if (!githubLink || !demoLink) {
       Alert.alert('Error', 'Please provide both GitHub and Demo links');
       return;
     }
-    submitMutation.mutate();
+    if (isEditing) {
+      updateMutation.mutate();
+    } else {
+      submitMutation.mutate();
+    }
   };
 
   if (isLoading || !result) return <LoadingSpinner />;
 
   const { task, submission } = result;
-  const domainColorClass = getDomainColor(task.domain);
   const formattedDate = new Date(task.deadline).toLocaleDateString();
 
   return (
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      className="flex-1 bg-gray-50 dark:bg-slate-900"
-    >
-      <ScrollView contentContainerStyle={{ padding: 16 }}>
-        <Stack.Screen options={{ title: 'Task Details' }} />
+    <SafeAreaView className="flex-1 bg-white dark:bg-zinc-950">
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        className="flex-1"
+      >
+      <ScrollView contentContainerStyle={{ padding: 16, paddingTop: 90 }}>
         
+        {/* Custom Back Button */}
+        <View className="flex-row items-center mb-6 mt-4">
+          <TouchableOpacity onPress={() => router.back()} className="flex-row items-center bg-zinc-100 dark:bg-zinc-900 px-3 py-1.5 rounded-full border-2 border-black dark:border-white mr-4">
+            <MaterialIcons name="arrow-back" size={18} color="#71717a" className="dark:text-zinc-400" />
+            <Text className="ml-1 font-bold text-zinc-900 dark:text-white uppercase tracking-widest text-xs">Back</Text>
+          </TouchableOpacity>
+        </View>
+
         {/* Task Info */}
-        <View className="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 mb-6">
+        <View className="bg-zinc-50 dark:bg-zinc-900 border-2 border-black dark:border-white p-5 rounded-xl mb-6">
           <View className="flex-row justify-between items-start mb-3">
-            <View className={`px-2 py-1 rounded-md ${domainColorClass}`}>
-              <Text className="text-white text-xs font-bold">{task.domain}</Text>
+            <View className="flex-row items-center px-2 py-1 rounded-md border-2 border-black dark:border-white bg-white dark:bg-zinc-950">
+              <DomainSwatch domain={task.domain} size={12} className="mr-1.5" />
+              <Text className="text-xs font-bold uppercase tracking-widest text-zinc-300">{task.domain}</Text>
             </View>
-            <Text className="text-gray-500 dark:text-slate-400 text-xs font-medium">Due: {formattedDate}</Text>
+            <View className="bg-white dark:bg-zinc-950 px-3 py-1 rounded-full border-2 border-black dark:border-white">
+              <Text className="text-zinc-900 dark:text-white text-xs font-bold uppercase tracking-widest">
+                {task.points} pts
+              </Text>
+            </View>
           </View>
-          <Text className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{task.title}</Text>
-          <Text className="text-gray-700 dark:text-slate-300 text-base leading-relaxed">{task.description}</Text>
+          
+          <Text className="text-2xl font-bold text-zinc-900 dark:text-white mb-2">
+            {task.title}
+          </Text>
+          <Text className="text-gray-400 text-sm leading-relaxed">{task.description}</Text>
         </View>
 
         {/* Submission Section */}
-        {submission ? (
-          <View className="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700">
-            <Text className="text-lg font-bold text-gray-900 dark:text-white mb-4">Your Submission</Text>
+        {submission && !isEditing ? (
+          <GlassCard className="p-6 mb-6">
+            <View className="flex-row justify-between items-center mb-6">
+              <Text className="text-xl font-bold text-zinc-900 dark:text-white">Your Submission</Text>
+              {submission.status === 'PENDING' && (
+                <TouchableOpacity 
+                  className="bg-zinc-100 dark:bg-zinc-900 border border-black dark:border-white px-3 py-1.5 rounded-lg flex-row items-center"
+                  onPress={() => {
+                    setGithubLink(submission.githubLink);
+                    setDemoLink(submission.demoLink);
+                    setRemarks(submission.remarks || '');
+                    setIsEditing(true);
+                  }}
+                >
+                  <MaterialIcons name="edit" size={14} color="#71717a" className="mr-1 dark:text-zinc-400" />
+                  <Text className="text-zinc-900 dark:text-white font-bold text-xs uppercase tracking-widest">Edit</Text>
+                </TouchableOpacity>
+              )}
+            </View>
             
             <View className="mb-4">
-              <Text className="text-gray-500 font-bold uppercase text-xs mb-1">Status</Text>
-              <View className={`self-start px-3 py-1 rounded border ${
-                submission.status === 'APPROVED' ? 'bg-green-100 border-green-200' :
-                submission.status === 'REJECTED' ? 'bg-red-100 border-red-200' :
-                'bg-yellow-100 border-yellow-200'
+              <Text className="text-zinc-500 font-bold uppercase text-xs mb-2">Status</Text>
+              <View className={`self-start flex-row items-center px-4 py-2 rounded-md border ${
+                submission.status === 'APPROVED' ? 'border-solid border-white' :
+                submission.status === 'REJECTED' ? 'border-dashed border-zinc-500' :
+                'border-dotted border-zinc-500'
               }`}>
-                <Text className={`font-bold ${
-                  submission.status === 'APPROVED' ? 'text-green-800' :
-                  submission.status === 'REJECTED' ? 'text-red-800' :
-                  'text-yellow-800'
+                <MaterialIcons 
+                  name={submission.status === 'APPROVED' ? 'check' : submission.status === 'REJECTED' ? 'close' : 'schedule'} 
+                  size={14} 
+                  color={submission.status === 'APPROVED' ? '#FFFFFF' : submission.status === 'REJECTED' ? '#71717a' : '#71717a'} 
+                  className="mr-2" 
+                />
+                <Text className={`font-mono tracking-widest uppercase text-[10px] ${
+                  submission.status === 'APPROVED' ? 'text-zinc-900 dark:text-white' : 'text-zinc-600 dark:text-zinc-400'
                 }`}>{submission.status}</Text>
               </View>
             </View>
             
             <View className="mb-4">
-              <Text className="text-gray-500 dark:text-slate-400 font-bold uppercase text-xs mb-1">GitHub Link</Text>
-              <Text className="text-blue-600 dark:text-blue-400 font-medium">{submission.githubLink}</Text>
+              <Text className="text-zinc-500 font-bold uppercase text-xs mb-1">GitHub Link</Text>
+              <Text className="text-zinc-900 dark:text-white font-medium">{submission.githubLink}</Text>
             </View>
             
             <View className="mb-4">
-              <Text className="text-gray-500 dark:text-slate-400 font-bold uppercase text-xs mb-1">Demo Link</Text>
-              <Text className="text-blue-600 dark:text-blue-400 font-medium">{submission.demoLink}</Text>
+              <Text className="text-zinc-500 font-bold uppercase text-xs mb-1">Demo Link</Text>
+              <Text className="text-zinc-900 dark:text-white font-medium">{submission.demoLink}</Text>
             </View>
             
             {submission.remarks && (
               <View>
-                <Text className="text-gray-500 dark:text-slate-400 font-bold uppercase text-xs mb-1">Remarks</Text>
-                <Text className="text-gray-700 dark:text-slate-300 italic">"{submission.remarks}"</Text>
+                <Text className="text-zinc-500 font-bold uppercase text-xs mb-1">Remarks</Text>
+                <Text className="text-zinc-300 italic">"{submission.remarks}"</Text>
               </View>
             )}
-          </View>
+          </GlassCard>
         ) : (
-          <View className="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700">
-            <Text className="text-lg font-bold text-gray-900 dark:text-white mb-4">Submit Task</Text>
+          <GlassCard className="p-6 mb-6">
+            <View className="flex-row justify-between items-center mb-6">
+              <Text className="text-xl font-bold text-zinc-900 dark:text-white">
+                {isEditing ? 'Edit Submission' : 'Submit Task'}
+              </Text>
+              {isEditing && (
+                <TouchableOpacity onPress={() => setIsEditing(false)}>
+                  <MaterialIcons name="close" size={24} color="#71717a" />
+                </TouchableOpacity>
+              )}
+            </View>
             
-            <View className="mb-4">
-              <Text className="text-gray-700 dark:text-slate-300 font-semibold mb-2 ml-1">GitHub Repository Link <Text className="text-red-500">*</Text></Text>
+            <View className="mb-5">
+              <Text className="text-zinc-500 font-bold uppercase text-xs tracking-wider mb-2 ml-1">GitHub Link <Text className="text-red-500">*</Text></Text>
               <TextInput
-                className="w-full bg-gray-50 dark:bg-slate-700 p-4 rounded-xl border border-gray-200 dark:border-slate-600 text-gray-900 dark:text-white"
+                className="w-full bg-zinc-100 dark:bg-zinc-900 border border-black dark:border-white px-5 py-4 rounded-xl text-zinc-900 dark:text-white font-medium focus:border-zinc-500"
                 placeholder="https://github.com/..."
                 placeholderTextColor="#9ca3af"
                 keyboardType="url"
@@ -121,10 +189,10 @@ export default function UserTaskDetail() {
               />
             </View>
             
-            <View className="mb-4">
-              <Text className="text-gray-700 dark:text-slate-300 font-semibold mb-2 ml-1">Live Demo Link <Text className="text-red-500">*</Text></Text>
+            <View className="mb-5">
+              <Text className="text-zinc-500 font-bold uppercase text-xs tracking-wider mb-2 ml-1">Live Demo <Text className="text-red-500">*</Text></Text>
               <TextInput
-                className="w-full bg-gray-50 dark:bg-slate-700 p-4 rounded-xl border border-gray-200 dark:border-slate-600 text-gray-900 dark:text-white"
+                className="w-full bg-zinc-100 dark:bg-zinc-900 border border-black dark:border-white px-5 py-4 rounded-xl text-zinc-900 dark:text-white font-medium focus:border-zinc-500"
                 placeholder="https://your-demo-url.com"
                 placeholderTextColor="#9ca3af"
                 keyboardType="url"
@@ -134,10 +202,10 @@ export default function UserTaskDetail() {
               />
             </View>
             
-            <View className="mb-6">
-              <Text className="text-gray-700 dark:text-slate-300 font-semibold mb-2 ml-1">Remarks (Optional)</Text>
+            <View className="mb-8">
+              <Text className="text-zinc-500 font-bold uppercase text-xs tracking-wider mb-2 ml-1">Remarks (Optional)</Text>
               <TextInput
-                className="w-full bg-gray-50 dark:bg-slate-700 p-4 rounded-xl border border-gray-200 dark:border-slate-600 text-gray-900 dark:text-white min-h-[100px]"
+                className="w-full bg-zinc-100 dark:bg-zinc-900 border border-black dark:border-white px-5 py-4 rounded-xl text-zinc-900 dark:text-white font-medium min-h-[120px] focus:border-zinc-500"
                 placeholder="Any additional notes..."
                 placeholderTextColor="#9ca3af"
                 multiline
@@ -148,17 +216,25 @@ export default function UserTaskDetail() {
             </View>
             
             <TouchableOpacity 
-              className={`w-full p-4 rounded-xl items-center shadow-sm ${submitMutation.isPending ? 'bg-blue-400' : 'bg-blue-600'}`}
+              className={`w-full py-4 px-6 rounded-xl items-center ${submitMutation.isPending ? 'bg-zinc-800' : 'bg-white'} flex-row justify-center`}
               onPress={handleSubmit}
               disabled={submitMutation.isPending}
             >
-              <Text className="text-white text-lg font-bold">
-                {submitMutation.isPending ? 'Submitting...' : 'Submit Task'}
-              </Text>
+              {submitMutation.isPending ? (
+                <ActivityIndicator color="#000000" />
+              ) : (
+                <>
+                  <Text className="text-black text-sm font-bold font-mono uppercase tracking-widest mr-2">
+                    {isEditing ? 'Update Submission' : 'Submit Task'}
+                  </Text>
+                  <MaterialIcons name="arrow-forward" size={18} color="#000000" />
+                </>
+              )}
             </TouchableOpacity>
-          </View>
+          </GlassCard>
         )}
       </ScrollView>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }

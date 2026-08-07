@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Alert, Platform, ActivityIndicator } from 'react-native';
 import { Stack } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getAdminAttendanceUsers, saveAttendance } from '../../../services/api';
@@ -8,25 +8,34 @@ import AttendanceRow from '../../../components/AttendanceRow';
 import LoadingSpinner from '../../../components/LoadingSpinner';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useColorScheme } from 'nativewind';
+import Background from '../../../components/Background';
+
 
 export default function AdminAttendance() {
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [records, setRecords] = useState<{ userId: string; status: AttendanceStatus }[]>([]);
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const iconColor = isDark ? '#ffffff' : '#000000';
   
   const queryClient = useQueryClient();
 
   const { data: users, isLoading } = useQuery({
-    queryKey: ['adminAttendanceUsers'],
-    queryFn: () => getAdminAttendanceUsers().then(res => res.data.data),
+    queryKey: ['adminAttendanceUsers', date.toISOString().split('T')[0]],
+    queryFn: () => getAdminAttendanceUsers(date.toISOString()).then(res => res.data.data),
   });
 
-  // Initialize records to all PRESENT if not set yet
+  // Initialize records from fetched data or default to PRESENT
   useEffect(() => {
-    if (users && records.length === 0) {
-      setRecords(users.map((u: any) => ({ userId: u.id, status: 'PRESENT' as AttendanceStatus })));
+    if (users) {
+      setRecords(users.map((u: any) => ({ 
+        userId: u.id, 
+        status: (u.attendance && u.attendance.length > 0) ? u.attendance[0].status : ('PRESENT' as AttendanceStatus)
+      })));
     }
-  }, [users, records]);
+  }, [users]);
 
   const handleStatusChange = (userId: string, status: AttendanceStatus) => {
     setRecords(prev => prev.map(r => r.userId === userId ? { ...r, status } : r));
@@ -46,32 +55,60 @@ export default function AdminAttendance() {
   if (isLoading) return <LoadingSpinner />;
 
   return (
-    <View className="flex-1 bg-gray-50 dark:bg-slate-900">
+    <Background>
       <Stack.Screen options={{ title: 'Mark Attendance' }} />
       
-      <View className="p-4 bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700 z-10 shadow-sm flex-row items-center justify-between">
-        <View className="flex-1">
-          <Text className="text-gray-500 dark:text-slate-400 text-xs font-bold uppercase mb-1">Date</Text>
+      <View style={{ paddingTop: 90 }}>
+        <View className="p-4 bg-zinc-100 dark:bg-zinc-900 border-b-2 border-black dark:border-white z-10 flex-row items-center justify-between">
+          <View className="flex-1">
+          <Text className="text-zinc-500 dark:text-zinc-400 text-xs font-bold uppercase mb-1">Date</Text>
           <TouchableOpacity 
             className="flex-row items-center"
             onPress={() => setShowDatePicker(true)}
           >
-            <Text className="text-lg font-bold text-gray-900 dark:text-white mr-2">{date.toDateString()}</Text>
-            <MaterialIcons name="edit-calendar" size={20} color="#3b82f6" />
+            <Text className="text-xl font-black text-zinc-900 dark:text-white mr-2">{date.toDateString()}</Text>
+            <MaterialIcons name="edit-calendar" size={24} color={saveMutation.isPending ? "#71717a" : iconColor} />
           </TouchableOpacity>
         </View>
         
         <TouchableOpacity 
-          className={`px-4 py-3 rounded-lg flex-row items-center shadow-sm ${saveMutation.isPending ? 'bg-blue-400' : 'bg-blue-600'}`}
+          className={`px-5 py-3 rounded-full flex-row items-center border-2 border-black dark:border-white ${saveMutation.isPending ? 'bg-zinc-300 dark:bg-zinc-700' : 'bg-black dark:bg-white'}`}
           onPress={() => saveMutation.mutate()}
           disabled={saveMutation.isPending}
         >
-          <MaterialIcons name="save" size={18} color="white" />
-          <Text className="text-white font-bold ml-2">Save</Text>
+          {saveMutation.isPending ? (
+            <ActivityIndicator size="small" color="#71717a" />
+          ) : (
+            <MaterialIcons name="save" size={18} color="gray" />
+          )}
+          <Text className={`font-black uppercase tracking-widest ml-2 text-xs ${saveMutation.isPending ? 'text-zinc-500' : 'text-white dark:text-black'}`}>Save</Text>
         </TouchableOpacity>
       </View>
 
-      {showDatePicker && (
+      {Platform.OS === 'web' ? (
+        <View className="px-4 py-2 border-b-2 border-black dark:border-white bg-zinc-50 dark:bg-zinc-900">
+          <Text className="text-zinc-500 dark:text-zinc-400 text-xs font-bold uppercase mb-1">Select Date</Text>
+          <input
+            type="date"
+            value={date.toISOString().split('T')[0]}
+            onChange={(e) => {
+              if (e.target.value) setDate(new Date(e.target.value));
+            }}
+            style={{
+              padding: '10px',
+              borderRadius: '8px',
+              border: '2px solid ' + (isDark ? '#ffffff' : '#000000'),
+              backgroundColor: isDark ? '#000000' : '#ffffff',
+              color: isDark ? '#ffffff' : '#000000',
+              fontFamily: 'monospace',
+              fontWeight: 'bold',
+              width: '100%',
+              outline: 'none',
+              cursor: 'pointer'
+            }}
+          />
+        </View>
+      ) : showDatePicker && (
         <DateTimePicker
           value={date}
           mode="date"
@@ -86,7 +123,7 @@ export default function AdminAttendance() {
       <FlatList
         data={users}
         keyExtractor={(item: any) => item.id}
-        contentContainerStyle={{ padding: 16 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 140 }}
         renderItem={({ item }: { item: any }) => {
           const currentRecord = records.find(r => r.userId === item.id);
           return (
@@ -98,6 +135,7 @@ export default function AdminAttendance() {
           );
         }}
       />
-    </View>
+      </View>
+    </Background>
   );
 }

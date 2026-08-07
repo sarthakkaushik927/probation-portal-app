@@ -87,9 +87,9 @@ export default function VerifyScreen() {
           disabled={verifyMutation.isPending}
         >
           {verifyMutation.isPending ? (
-            <Text className="text-white text-lg font-bold">Verifying...</Text>
+            <Text className="text-zinc-900 dark:text-white text-lg font-bold">Verifying...</Text>
           ) : (
-            <Text className="text-white text-lg font-bold">Verify Account</Text>
+            <Text className="text-zinc-900 dark:text-white text-lg font-bold">Verify Account</Text>
           )}
         </TouchableOpacity>
 

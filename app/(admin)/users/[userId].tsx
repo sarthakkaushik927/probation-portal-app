@@ -6,7 +6,9 @@ import { getAdminUser, updateUserDomain } from '../../../services/api';
 import { DOMAINS } from '../../../constants/domains';
 import LoadingSpinner from '../../../components/LoadingSpinner';
 import StatCard from '../../../components/StatCard';
-import { Picker } from '@react-native-picker/picker'; // We need to install this or build a custom one. Let's use a custom UI since we don't have it listed in prompt's deps
+import GlassCard from '../../../components/GlassCard';
+import Background from '../../../components/Background';
+
 
 export default function UserDetail() {
   const { userId } = useLocalSearchParams<{ userId: string }>();
@@ -18,11 +20,13 @@ export default function UserDetail() {
     queryFn: () => getAdminUser(userId).then(res => res.data.data),
   });
 
+  const userData = user?.user;
+
   useEffect(() => {
-    if (user) {
-      setSelectedDomain(user.domain || 'UNASSIGNED');
+    if (userData) {
+      setSelectedDomain(userData.domain || 'UNASSIGNED');
     }
-  }, [user]);
+  }, [userData]);
 
   const updateDomainMutation = useMutation({
     mutationFn: (domain: string) => updateUserDomain(userId, domain === 'UNASSIGNED' ? null : domain),
@@ -46,81 +50,81 @@ export default function UserDetail() {
   const attendanceRate = totalDays > 0 ? Math.round((presentDays / totalDays) * 100) : 0;
 
   return (
-    <ScrollView className="flex-1 bg-gray-50 dark:bg-slate-900">
-      <Stack.Screen options={{ title: user.name || 'User Detail' }} />
+    <ScrollView className="flex-1 bg-white dark:bg-zinc-950">
+      <Stack.Screen options={{ title: userData?.name || 'User Detail' }} />
       
       <View className="p-4">
         {/* User Info */}
-        <View className="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 mb-6 items-center">
-          <View className="w-20 h-20 bg-blue-100 rounded-full items-center justify-center mb-3">
-            <Text className="text-blue-600 text-3xl font-bold">{user.name?.charAt(0).toUpperCase() || '?'}</Text>
+        <GlassCard className="items-center mb-6 py-6 border-2">
+          <View className="w-20 h-20 bg-zinc-100 dark:bg-zinc-900 border-2 border-black dark:border-white rounded-full items-center justify-center mb-3">
+            <Text className="text-zinc-900 dark:text-white text-3xl font-bold font-sans">{userData?.name?.charAt(0).toUpperCase() || '?'}</Text>
           </View>
-          <Text className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{user.name}</Text>
-          <Text className="text-gray-500 dark:text-slate-400 mb-3">{user.email}</Text>
-          <View className="bg-gray-100 dark:bg-slate-700 px-3 py-1 rounded-md">
-            <Text className="text-gray-700 dark:text-slate-300 font-bold text-xs">{user.role}</Text>
+          <Text className="text-xl font-bold text-zinc-900 dark:text-white mb-1">{userData?.name}</Text>
+          <Text className="text-zinc-600 dark:text-zinc-400 mb-3">{userData?.email}</Text>
+          <View className="bg-zinc-100 dark:bg-zinc-900 border-2 border-black dark:border-white px-3 py-1 rounded-md">
+            <Text className="text-zinc-600 dark:text-zinc-400 font-bold font-mono text-xs">{userData?.role}</Text>
           </View>
-        </View>
+        </GlassCard>
 
         {/* Domain Assignment */}
-        <View className="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 mb-6">
-          <Text className="text-lg font-bold text-gray-900 dark:text-white mb-4">Assign Domain</Text>
+        <Text className="text-xs font-bold text-zinc-500 uppercase tracking-wide mb-3 ml-1">Domain Assignment</Text>
+        <GlassCard className="mb-6 p-4">
           <View className="flex-row flex-wrap gap-2 mb-4">
             {['UNASSIGNED', ...DOMAINS].map((domain) => (
               <TouchableOpacity
                 key={domain}
                 onPress={() => setSelectedDomain(domain)}
-                className={`px-3 py-2 rounded-lg border ${
+                className={`px-4 py-2 rounded-full border ${
                   selectedDomain === domain 
-                    ? 'bg-blue-50 border-blue-500 dark:bg-blue-900/30 dark:border-blue-500' 
-                    : 'bg-white border-gray-200 dark:bg-slate-800 dark:border-slate-600'
+                    ? 'bg-zinc-100 dark:bg-zinc-900 border-white' 
+                    : 'bg-white dark:bg-zinc-950 border-black dark:border-white'
                 }`}
               >
-                <Text className={`${selectedDomain === domain ? 'text-blue-600 dark:text-blue-400 font-bold' : 'text-gray-600 dark:text-slate-400'}`}>
+                <Text className={`${selectedDomain === domain ? 'text-zinc-900 dark:text-white font-bold' : 'text-zinc-500'} font-mono text-xs uppercase tracking-wider`}>
                   {domain}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
           <TouchableOpacity 
-            className="w-full bg-blue-600 p-4 rounded-xl items-center"
+            className="w-full bg-zinc-100 dark:bg-zinc-900 border-2 border-black dark:border-white p-4 rounded-xl items-center"
             onPress={() => updateDomainMutation.mutate(selectedDomain)}
-            disabled={updateDomainMutation.isPending || selectedDomain === (user.domain || 'UNASSIGNED')}
+            disabled={updateDomainMutation.isPending || selectedDomain === (userData?.domain || 'UNASSIGNED')}
           >
-            <Text className="text-white font-bold">Save Domain</Text>
+            <Text className="text-zinc-900 dark:text-white font-bold font-mono uppercase tracking-widest">Save Domain</Text>
           </TouchableOpacity>
-        </View>
+        </GlassCard>
 
         {/* Attendance Stats */}
-        <Text className="text-lg font-bold text-gray-900 dark:text-white mb-3 ml-1">Attendance Stats</Text>
-        <View className="flex-col mb-6">
-          <StatCard title="Rate" value={`${attendanceRate}%`} colorClass="bg-blue-500" />
-          <StatCard title="Present" value={presentDays} colorClass="bg-green-500" />
-          <StatCard title="Absent" value={absentDays} colorClass="bg-red-500" />
-          <StatCard title="Leave" value={leaveDays} colorClass="bg-yellow-500" />
+        <Text className="text-lg font-bold text-zinc-900 dark:text-white font-sans mb-3 ml-1">Attendance Stats</Text>
+        <View className="flex-row flex-wrap justify-between mb-6">
+          <StatCard title="Rate" value={`${attendanceRate}%`} colorClass="bg-zinc-100 dark:bg-zinc-900" />
+          <StatCard title="Present" value={presentDays} colorClass="bg-zinc-100 dark:bg-zinc-900" />
+          <StatCard title="Absent" value={absentDays} colorClass="bg-zinc-100 dark:bg-zinc-900" />
+          <StatCard title="Leave" value={leaveDays} colorClass="bg-zinc-100 dark:bg-zinc-900" />
         </View>
 
         {/* Attendance History */}
-        <Text className="text-lg font-bold text-gray-900 dark:text-white mb-3 ml-1">Attendance History</Text>
+        <Text className="text-lg font-bold text-zinc-900 dark:text-white font-sans mb-3 ml-1">Attendance History</Text>
         {user.attendance && user.attendance.length > 0 ? (
-          <View className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden mb-6">
+          <GlassCard className="mb-6 p-0">
             {user.attendance.map((record: any, index: number) => (
               <View 
                 key={record.id} 
-                className={`flex-row justify-between p-4 ${index !== user.attendance.length - 1 ? 'border-b border-gray-100 dark:border-slate-700' : ''}`}
+                className={`flex-row justify-between p-4 ${index !== user.attendance.length - 1 ? 'border-b border-black dark:border-white' : ''}`}
               >
-                <Text className="text-gray-700 dark:text-slate-300">{new Date(record.date).toLocaleDateString()}</Text>
-                <Text className={`font-bold ${
-                  record.status === 'PRESENT' ? 'text-green-600' :
-                  record.status === 'ABSENT' ? 'text-red-500' : 'text-yellow-600'
+                <Text className="text-zinc-900 dark:text-white font-mono text-sm">{new Date(record.date).toLocaleDateString()}</Text>
+                <Text className={`font-bold font-mono text-xs uppercase tracking-widest ${
+                  record.status === 'PRESENT' ? 'text-zinc-900 dark:text-white' :
+                  record.status === 'ABSENT' ? 'text-zinc-500' : 'text-zinc-600 dark:text-zinc-400'
                 }`}>
                   {record.status}
                 </Text>
               </View>
             ))}
-          </View>
+          </GlassCard>
         ) : (
-          <Text className="text-gray-500 italic ml-1 mb-6">No attendance records found.</Text>
+          <Text className="text-zinc-500 italic ml-1 mb-6">No attendance records found.</Text>
         )}
       </View>
     </ScrollView>

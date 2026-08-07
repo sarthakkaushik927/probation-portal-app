@@ -15,7 +15,7 @@ export default function Index() {
     <SafeAreaView className="flex-1 bg-white">
       <View className="flex-1 justify-center items-center p-6">
         <View className="w-24 h-24 bg-blue-500 rounded-2xl mb-8 items-center justify-center shadow-lg shadow-blue-200">
-          <Text className="text-white text-5xl font-bold">P</Text>
+          <Text className="text-zinc-900 dark:text-white text-5xl font-bold">P</Text>
         </View>
         
         <Text className="text-4xl font-bold text-gray-900 mb-2 text-center">
@@ -27,7 +27,7 @@ export default function Index() {
 
         <Link href="/(auth)/signup" asChild>
           <TouchableOpacity className="w-full bg-blue-600 p-4 rounded-xl items-center mb-4 shadow-md shadow-blue-200">
-            <Text className="text-white text-lg font-bold">Get Started</Text>
+            <Text className="text-zinc-900 dark:text-white text-lg font-bold">Get Started</Text>
           </TouchableOpacity>
         </Link>
         

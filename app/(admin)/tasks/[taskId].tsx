@@ -58,13 +58,13 @@ export default function EditTask() {
   if (isLoading) return <LoadingSpinner />;
 
   return (
-    <ScrollView className="flex-1 bg-white dark:bg-slate-900 p-4">
+    <ScrollView className="flex-1 bg-white dark:bg-zinc-950 p-5">
       <Stack.Screen options={{ title: 'Edit Task' }} />
       
-      <View className="mb-4">
-        <Text className="text-gray-700 dark:text-slate-300 font-semibold mb-2 ml-1">Title</Text>
+      <View className="mb-5">
+        <Text className="text-gray-600 dark:text-slate-400 font-bold uppercase text-xs tracking-wider mb-2 ml-1">Title</Text>
         <TextInput
-          className="w-full bg-gray-50 dark:bg-slate-800 p-4 rounded-xl border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white"
+          className="w-full bg-white dark:bg-zinc-900 p-4 rounded-xl border-[3px] border-black dark:border-white text-zinc-900 dark:text-white font-mono"
           placeholder="Task title"
           placeholderTextColor="#9ca3af"
           value={title}
@@ -72,10 +72,10 @@ export default function EditTask() {
         />
       </View>
 
-      <View className="mb-4">
-        <Text className="text-gray-700 dark:text-slate-300 font-semibold mb-2 ml-1">Description</Text>
+      <View className="mb-5">
+        <Text className="text-gray-600 dark:text-slate-400 font-bold uppercase text-xs tracking-wider mb-2 ml-1">Description</Text>
         <TextInput
-          className="w-full bg-gray-50 dark:bg-slate-800 p-4 rounded-xl border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white min-h-[100px]"
+          className="w-full bg-white dark:bg-zinc-900 p-5 rounded-xl border-[3px] border-black dark:border-white text-zinc-900 dark:text-white font-mono min-h-[120px]"
           placeholder="Detailed task description..."
           placeholderTextColor="#9ca3af"
           multiline
@@ -85,20 +85,20 @@ export default function EditTask() {
         />
       </View>
 
-      <View className="mb-4">
-        <Text className="text-gray-700 dark:text-slate-300 font-semibold mb-2 ml-1">Domain</Text>
-        <View className="flex-row flex-wrap gap-2">
+      <View className="mb-6">
+        <Text className="text-gray-600 dark:text-slate-400 font-bold uppercase text-xs tracking-wider mb-3 ml-1">Domain</Text>
+        <View className="flex-row flex-wrap gap-3">
           {DOMAINS.map((d) => (
             <TouchableOpacity
               key={d}
               onPress={() => setDomain(d)}
-              className={`px-3 py-2 rounded-lg border ${
+              className={`px-4 py-2.5 rounded-xl border-[3px] border-black dark:border-white ${
                 domain === d 
-                  ? 'bg-blue-50 border-blue-500 dark:bg-blue-900/30 dark:border-blue-500' 
-                  : 'bg-white border-gray-200 dark:bg-slate-800 dark:border-slate-700'
+                  ? 'bg-blue-500' 
+                  : 'bg-white dark:bg-zinc-900'
               }`}
             >
-              <Text className={`${domain === d ? 'text-blue-600 dark:text-blue-400 font-bold' : 'text-gray-600 dark:text-slate-400'}`}>
+              <Text className={`font-mono font-bold text-xs uppercase tracking-wider ${domain === d ? 'text-zinc-900 dark:text-white' : 'text-zinc-500 dark:text-zinc-400'}`}>
                 {d}
               </Text>
             </TouchableOpacity>
@@ -107,12 +107,12 @@ export default function EditTask() {
       </View>
 
       <View className="mb-8">
-        <Text className="text-gray-700 dark:text-slate-300 font-semibold mb-2 ml-1">Deadline</Text>
+        <Text className="text-gray-600 dark:text-slate-400 font-bold uppercase text-xs tracking-wider mb-2 ml-1">Deadline</Text>
         <TouchableOpacity 
-          className="w-full bg-gray-50 dark:bg-slate-800 p-4 rounded-xl border border-gray-200 dark:border-slate-700"
+          className="w-full bg-white dark:bg-zinc-900 p-4 rounded-xl border-[3px] border-black dark:border-white items-center"
           onPress={() => setShowDatePicker(true)}
         >
-          <Text className="text-gray-900 dark:text-white">{deadline.toLocaleDateString()} {deadline.toLocaleTimeString()}</Text>
+          <Text className="text-zinc-900 dark:text-white font-mono font-bold uppercase tracking-widest">{deadline.toLocaleDateString()} {deadline.toLocaleTimeString()}</Text>
         </TouchableOpacity>
         
         {showDatePicker && (
@@ -128,13 +128,18 @@ export default function EditTask() {
       </View>
 
       <TouchableOpacity 
-        className={`w-full p-4 rounded-xl items-center mb-6 shadow-sm ${updateMutation.isPending ? 'bg-blue-400' : 'bg-blue-600'}`}
+        className={`w-full py-4 px-6 rounded-xl items-center mb-12 border-[3px] border-black dark:border-white ${updateMutation.isPending ? 'bg-zinc-300 dark:bg-zinc-700' : 'bg-[#e0e7ff] dark:bg-blue-900'} flex-row justify-center`}
         onPress={handleUpdate}
         disabled={updateMutation.isPending}
       >
-        <Text className="text-white text-lg font-bold">
+        <Text className="text-zinc-900 dark:text-white font-mono text-lg font-bold uppercase tracking-widest mr-2">
           {updateMutation.isPending ? 'Updating...' : 'Save Changes'}
         </Text>
+        {!updateMutation.isPending && (
+          <View className="bg-white/20 rounded-full p-1">
+            <Text className="text-zinc-900 dark:text-white font-black text-xs">→</Text>
+          </View>
+        )}
       </TouchableOpacity>
     </ScrollView>
   );

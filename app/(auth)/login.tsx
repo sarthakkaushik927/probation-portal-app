@@ -1,12 +1,15 @@
-import { View, Text, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { useMutation } from '@tanstack/react-query';
 import { login } from '../../services/api';
 import { useAuthStore } from '../../store/auth';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { MaterialIcons } from '@expo/vector-icons';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import Background from '../../components/Background';
+import GlassCard from '../../components/GlassCard';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -46,80 +49,103 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1"
-      >
-        <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24 }}>
-          <View className="mb-10">
-            <Text className="text-4xl font-bold text-gray-900 mb-2">Welcome Back</Text>
-            <Text className="text-lg text-gray-500">Sign in to continue to your portal.</Text>
-          </View>
-
-          <View className="space-y-4 mb-8">
-            <View>
-              <Text className="text-gray-700 font-semibold mb-2 ml-1">Email</Text>
-              <Controller
-                control={control}
-                name="email"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <TextInput
-                    className={`w-full bg-gray-50 p-4 rounded-xl border ${errors.email ? 'border-red-500' : 'border-gray-200'} text-gray-900`}
-                    placeholder="you@example.com"
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    onBlur={onBlur}
-                    onChangeText={onChange}
-                    value={value}
-                  />
-                )}
-              />
-              {errors.email && <Text className="text-red-500 text-sm mt-1 ml-1">{errors.email.message}</Text>}
+    <Background>
+      <SafeAreaView className="flex-1">
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          className="flex-1"
+        >
+          <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24 }}>
+            <View className="items-center mb-8">
+              <View className="w-24 h-24 bg-white/10 dark:bg-black/20 rounded-[32px] items-center justify-center mb-6 border border-black/10 dark:border-white/10 shadow-sm overflow-hidden">
+                <GlassCard intensity={80} className="w-full h-full absolute top-0 left-0 border-0 rounded-[32px]" />
+                <View className="absolute z-10 w-full h-full items-center justify-center">
+                  <MaterialIcons name="security" size={48} color="#3b82f6" />
+                </View>
+              </View>
+              <Text className="text-4xl font-black font-sans text-zinc-900 dark:text-white mb-2 tracking-tighter">Welcome Back</Text>
+              <Text className="text-zinc-500 dark:text-zinc-400 font-sans text-lg">Sign in to your account</Text>
             </View>
 
-            <View className="mt-4">
-              <Text className="text-gray-700 font-semibold mb-2 ml-1">Password</Text>
-              <Controller
-                control={control}
-                name="password"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <TextInput
-                    className={`w-full bg-gray-50 p-4 rounded-xl border ${errors.password ? 'border-red-500' : 'border-gray-200'} text-gray-900`}
-                    placeholder="••••••••"
-                    secureTextEntry
-                    onBlur={onBlur}
-                    onChangeText={onChange}
-                    value={value}
+            <GlassCard className="p-2 mb-8">
+              <View>
+                <View className="mb-4">
+                  <Controller
+                    control={control}
+                    name="email"
+                    render={({ field: { onChange, onBlur, value } }) => (
+                      <View className={`flex-row items-center bg-white/50 dark:bg-black/30 border ${errors.email ? 'border-red-500' : 'border-zinc-300 dark:border-zinc-800'} rounded-2xl px-4 h-16`}>
+                        <MaterialIcons name="email" size={22} color={errors.email ? "#ef4444" : "#71717a"} style={{ marginRight: 12 }} />
+                        <TextInput
+                          className="flex-1 text-zinc-900 dark:text-white font-sans text-base"
+                          placeholder="Email address"
+                          placeholderTextColor="#71717a"
+                          keyboardType="email-address"
+                          autoCapitalize="none"
+                          onBlur={onBlur}
+                          onChangeText={onChange}
+                          value={value}
+                        />
+                      </View>
+                    )}
                   />
-                )}
-              />
-              {errors.password && <Text className="text-red-500 text-sm mt-1 ml-1">{errors.password.message}</Text>}
-            </View>
-          </View>
+                  {errors.email && <Text className="text-red-500 text-sm mt-1 ml-2 font-medium">{errors.email.message}</Text>}
+                </View>
 
-          <TouchableOpacity 
-            className={`w-full p-4 rounded-xl items-center mb-6 shadow-sm ${loginMutation.isPending ? 'bg-blue-400' : 'bg-blue-600'}`}
-            onPress={handleSubmit(onSubmit)}
-            disabled={loginMutation.isPending}
-          >
-            {loginMutation.isPending ? (
-              <Text className="text-white text-lg font-bold">Logging in...</Text>
-            ) : (
-              <Text className="text-white text-lg font-bold">Log In</Text>
-            )}
-          </TouchableOpacity>
+                <View className="mb-2">
+                  <Controller
+                    control={control}
+                    name="password"
+                    render={({ field: { onChange, onBlur, value } }) => (
+                      <View className={`flex-row items-center bg-white/50 dark:bg-black/30 border ${errors.password ? 'border-red-500' : 'border-zinc-300 dark:border-zinc-800'} rounded-2xl px-4 h-16`}>
+                        <MaterialIcons name="lock" size={22} color={errors.password ? "#ef4444" : "#71717a"} style={{ marginRight: 12 }} />
+                        <TextInput
+                          className="flex-1 text-zinc-900 dark:text-white font-sans text-base"
+                          placeholder="Password"
+                          placeholderTextColor="#71717a"
+                          secureTextEntry
+                          onBlur={onBlur}
+                          onChangeText={onChange}
+                          value={value}
+                        />
+                      </View>
+                    )}
+                  />
+                  {errors.password && <Text className="text-red-500 text-sm mt-1 ml-2 font-medium">{errors.password.message}</Text>}
+                </View>
 
-          <View className="flex-row justify-center">
-            <Text className="text-gray-500 text-base">Don't have an account? </Text>
-            <Link href="/(auth)/signup" asChild>
-              <TouchableOpacity>
-                <Text className="text-blue-600 font-bold text-base">Sign Up</Text>
+                <View className="items-end mt-1 mb-2">
+                  <TouchableOpacity onPress={() => router.push('/(auth)/forgot-password' as any)}>
+                    <Text className="text-blue-600 dark:text-blue-400 font-sans font-semibold text-sm">Forgot password?</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity 
+                  className={`h-16 rounded-2xl items-center justify-center flex-row shadow-sm mt-2 ${loginMutation.isPending ? 'bg-zinc-800' : 'bg-zinc-900 dark:bg-white'}`}
+                  onPress={handleSubmit(onSubmit)}
+                  disabled={loginMutation.isPending}
+                >
+                  {loginMutation.isPending ? (
+                    <ActivityIndicator color={loginMutation.isPending ? "#fff" : "#000"} />
+                  ) : (
+                    <>
+                      <Text className="text-white dark:text-black font-bold font-sans text-lg mr-2">Sign In</Text>
+                      <MaterialIcons name="arrow-forward" size={20} color="dark:text-black text-white" />
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </GlassCard>
+
+            <View className="flex-row justify-center mt-4">
+              <Text className="text-zinc-500 dark:text-zinc-400 font-sans text-base">Don't have an account? </Text>
+              <TouchableOpacity onPress={() => router.push('/(auth)/signup')}>
+                <Text className="text-blue-600 dark:text-blue-400 font-bold font-sans text-base">Sign up</Text>
               </TouchableOpacity>
-            </Link>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </Background>
   );
 }

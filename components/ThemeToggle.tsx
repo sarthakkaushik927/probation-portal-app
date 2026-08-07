@@ -11,7 +11,7 @@ export default function ThemeToggle() {
     <TouchableOpacity
       activeOpacity={0.7}
       onPress={toggleColorScheme}
-      className="p-2 rounded-full bg-gray-100 dark:bg-slate-800 items-center justify-center border border-gray-200 dark:border-slate-700"
+      className="items-center justify-center w-full h-full"
     >
       <MaterialIcons
         name={isDark ? 'light-mode' : 'dark-mode'}

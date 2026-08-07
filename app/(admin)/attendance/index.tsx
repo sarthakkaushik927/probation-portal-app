@@ -58,7 +58,7 @@ export default function AdminAttendance() {
     <Background>
       <Stack.Screen options={{ title: 'Mark Attendance' }} />
       
-      <View style={{ paddingTop: 90 }}>
+      <View style={{ paddingTop: 130 }}>
         <View className="p-4 bg-zinc-100 dark:bg-zinc-900 border-b-2 border-black dark:border-white z-10 flex-row items-center justify-between">
           <View className="flex-1">
           <Text className="text-zinc-500 dark:text-zinc-400 text-xs font-bold uppercase mb-1">Date</Text>

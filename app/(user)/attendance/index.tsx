@@ -69,7 +69,7 @@ export default function UserAttendance() {
     <Background>
       <ScrollView 
         className="flex-1"
-      contentContainerStyle={{ paddingBottom: 140, paddingTop: 90 }}
+      contentContainerStyle={{ paddingBottom: 140, paddingTop: 130 }}
       refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
     >
       <Stack.Screen options={{ title: 'My Attendance', headerShown: false }} />

@@ -10,6 +10,7 @@ import * as z from 'zod';
 import Background from '../../components/Background';
 import GlassCard from '../../components/GlassCard';
 import AnimatedLogo from '../../components/AnimatedLogo';
+import ThemeToggle from '../../components/ThemeToggle';
 
 const signupSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -54,6 +55,9 @@ export default function SignupScreen() {
   return (
     <Background>
       <SafeAreaView className="flex-1">
+        <View className="absolute top-6 right-6 z-50 w-12 h-12 bg-white/50 dark:bg-black/30 rounded-full items-center justify-center border border-zinc-200 dark:border-zinc-800 shadow-sm">
+          <ThemeToggle />
+        </View>
         <KeyboardAvoidingView 
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           className="flex-1"

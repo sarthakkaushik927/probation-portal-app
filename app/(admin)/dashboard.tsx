@@ -14,6 +14,7 @@ import Background from '../../components/Background';
 import { StatPieChart } from '../../components/ChartComponents';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
+import { handleFileExport } from '../../utils/exportHelper';
 
 export default function AdminDashboard() {
   const user = useAuthStore(state => state.user);
@@ -219,9 +220,7 @@ export default function AdminDashboard() {
                 onPress={async () => {
                   try {
                     const res = await exportAttendanceCSV();
-                    const fileUri = FileSystem.documentDirectory + 'attendance.csv';
-                    await FileSystem.writeAsStringAsync(fileUri, res.data);
-                    await Sharing.shareAsync(fileUri, { mimeType: 'text/csv' });
+                    handleFileExport('attendance.csv', res.data);
                   } catch (e) { Alert.alert('Error', 'Failed to export attendance'); }
                 }}
               >
@@ -233,9 +232,7 @@ export default function AdminDashboard() {
                 onPress={async () => {
                   try {
                     const res = await exportSubmissionsCSV();
-                    const fileUri = FileSystem.documentDirectory + 'submissions.csv';
-                    await FileSystem.writeAsStringAsync(fileUri, res.data);
-                    await Sharing.shareAsync(fileUri, { mimeType: 'text/csv' });
+                    handleFileExport('submissions.csv', res.data);
                   } catch (e) { Alert.alert('Error', 'Failed to export submissions'); }
                 }}
               >
@@ -247,9 +244,7 @@ export default function AdminDashboard() {
                 onPress={async () => {
                   try {
                     const res = await exportUsersCSV();
-                    const fileUri = FileSystem.documentDirectory + 'users.csv';
-                    await FileSystem.writeAsStringAsync(fileUri, res.data);
-                    await Sharing.shareAsync(fileUri, { mimeType: 'text/csv' });
+                    handleFileExport('users.csv', res.data);
                   } catch (e) { Alert.alert('Error', 'Failed to export users'); }
                 }}
               >

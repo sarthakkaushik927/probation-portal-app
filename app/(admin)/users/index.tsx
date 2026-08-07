@@ -11,6 +11,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useColorScheme } from 'nativewind';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
+import { handleFileExport } from '../../../utils/exportHelper';
 
 export default function AdminUsersList() {
   const router = useRouter();
@@ -57,9 +58,7 @@ export default function AdminUsersList() {
     try {
       const ids = selectedIds.length > 0 ? selectedIds : undefined;
       const res = await exportUsersCSV(ids);
-      const fileUri = FileSystem.documentDirectory + 'users_export.csv';
-      await FileSystem.writeAsStringAsync(fileUri, res.data);
-      await Sharing.shareAsync(fileUri, { mimeType: 'text/csv' });
+      handleFileExport('users_export.csv', res.data);
     } catch (e: any) {
       Alert.alert('Export Error', e?.message || 'Failed to export users');
     }

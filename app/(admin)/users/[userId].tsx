@@ -13,6 +13,7 @@ import { useColorScheme } from 'nativewind';
 import { useRouter } from 'expo-router';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
+import { handleFileExport } from '../../../utils/exportHelper';
 
 
 export default function UserDetail() {
@@ -143,9 +144,7 @@ export default function UserDetail() {
             onPress={async () => {
               try {
                 const res = await exportUserDataCSV(userId);
-                const fileUri = FileSystem.documentDirectory + `user_${userId}.csv`;
-                await FileSystem.writeAsStringAsync(fileUri, res.data);
-                await Sharing.shareAsync(fileUri, { mimeType: 'text/csv' });
+                handleFileExport(`user_${userId}.csv`, res.data);
               } catch { Alert.alert('Error', 'Failed to export user data'); }
             }}
           >

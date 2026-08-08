@@ -6,33 +6,31 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "android": {
-        "image": "ubuntu-22.04-jdk-17-ndk-r26b"
-      }
+      "android": {},
+      "channel": "development"
     },
     "preview": {
       "distribution": "internal",
       "android": {
-        "buildType": "apk",
-        "image": "ubuntu-22.04-jdk-17-ndk-r26b"
+        "buildType": "apk"
       },
       "env": {
         "EXPO_PUBLIC_API_URL": "https://probation-portal-backend.vercel.app/api",
         "EXPO_PUBLIC_USE_PUSHER": "true",
         "EXPO_PUBLIC_PUSHER_KEY": "05b36ebd8cbd750f01b6",
         "EXPO_PUBLIC_PUSHER_CLUSTER": "ap2"
-      }
+      },
+      "channel": "preview"
     },
     "production": {
-      "android": {
-        "image": "ubuntu-22.04-jdk-17-ndk-r26b"
-      },
+      "android": {},
       "env": {
         "EXPO_PUBLIC_API_URL": "https://probation-portal-backend.vercel.app/api",
         "EXPO_PUBLIC_USE_PUSHER": "true",
         "EXPO_PUBLIC_PUSHER_KEY": "05b36ebd8cbd750f01b6",
         "EXPO_PUBLIC_PUSHER_CLUSTER": "ap2"
-      }
+      },
+      "channel": "production"
     }
   },
   "submit": {

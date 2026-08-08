@@ -62,6 +62,12 @@
         "projectId": "e8a6c504-9a3d-488e-a866-b8ae2d2bc708"
       }
     },
-    "owner": "sarthakkaushik927"
+    "owner": "sarthakkaushik927",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/e8a6c504-9a3d-488e-a866-b8ae2d2bc708"
+    }
   }
 }

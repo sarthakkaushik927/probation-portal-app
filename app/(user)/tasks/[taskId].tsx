@@ -10,7 +10,7 @@ import GlassCard from '../../../components/GlassCard';
 import { MaterialIcons } from '@expo/vector-icons';
 import Background from '../../../components/Background';
 import DiscussionThread from '../../../components/DiscussionThread';
-
+import { useTabBackHandler } from '../../../hooks/useTabBackHandler';
 
 export default function UserTaskDetail() {
   const { taskId } = useLocalSearchParams<{ taskId: string }>();
@@ -21,6 +21,8 @@ export default function UserTaskDetail() {
   
   const router = useRouter();
   const queryClient = useQueryClient();
+
+  useTabBackHandler('/(user)/tasks');
 
   const { data: result, isLoading } = useQuery({
     queryKey: ['userTask', taskId],
@@ -83,7 +85,7 @@ export default function UserTaskDetail() {
         
         {/* Custom Back Button */}
         <View className="flex-row items-center mb-6 mt-4">
-          <TouchableOpacity onPress={() => router.back()} className="flex-row items-center bg-zinc-100 dark:bg-zinc-900 px-3 py-1.5 rounded-full border-2 border-black dark:border-white mr-4">
+          <TouchableOpacity onPress={() => router.replace('/(user)/tasks')} className="flex-row items-center bg-zinc-100 dark:bg-zinc-900 px-3 py-1.5 rounded-full border-2 border-black dark:border-white mr-4">
             <MaterialIcons name="arrow-back" size={18} color="#71717a" className="dark:text-zinc-400" />
             <Text className="ml-1 font-bold text-zinc-900 dark:text-white uppercase tracking-widest text-xs">Back</Text>
           </TouchableOpacity>

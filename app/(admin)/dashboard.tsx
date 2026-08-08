@@ -45,7 +45,6 @@ export default function AdminDashboard() {
     try {
       setIsBroadcasting(true);
       await broadcastNotification(broadcastTitle, broadcastMessage);
-      Alert.alert('Success', 'Broadcast notification sent to all users!');
       setBroadcastTitle('');
       setBroadcastMessage('');
     } catch (error: any) {

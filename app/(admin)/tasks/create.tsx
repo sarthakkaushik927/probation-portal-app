@@ -8,6 +8,8 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import Animated, { FadeInUp, FadeOutUp } from 'react-native-reanimated';
 import { MaterialIcons } from '@expo/vector-icons';
 import GlassCard from '../../../components/GlassCard';
+import { useTabBackHandler } from '../../../hooks/useTabBackHandler';
+import { useColorScheme } from 'nativewind';
 
 export default function CreateTask() {
   const [title, setTitle] = useState('');
@@ -19,6 +21,11 @@ export default function CreateTask() {
   
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const iconColor = isDark ? '#fff' : '#000';
+
+  useTabBackHandler('/(admin)/tasks');
 
   const createMutation = useMutation({
     mutationFn: () => createTask({ title, description, domain, deadline: deadline.toISOString() }),
@@ -26,7 +33,7 @@ export default function CreateTask() {
       setToastMessage({ title: 'Success', message: 'Task created successfully', type: 'success' });
       queryClient.invalidateQueries({ queryKey: ['adminTasks'] });
       setTimeout(() => {
-        router.replace('/(admin)/dashboard');
+        router.replace('/(admin)/tasks');
       }, 1500);
     },
     onError: (error: any) => {
@@ -68,6 +75,15 @@ export default function CreateTask() {
       <ScrollView contentContainerStyle={{ paddingTop: 130, paddingBottom: 120, paddingHorizontal: 20 }}>
         <Stack.Screen options={{ title: 'Create Task', headerTransparent: true }} />
         
+        {/* Back Button */}
+        <TouchableOpacity 
+          onPress={() => router.replace('/(admin)/tasks')}
+          className="flex-row items-center mb-6 bg-zinc-100 dark:bg-zinc-900 self-start px-3 py-2 rounded-full border border-black dark:border-white"
+        >
+          <MaterialIcons name="arrow-back" size={18} color={iconColor} />
+          <Text className="ml-1.5 font-bold text-xs uppercase tracking-widest text-zinc-900 dark:text-white">Back to Tasks</Text>
+        </TouchableOpacity>
+
         <View className="mb-4">
         <Text className="text-gray-700 dark:text-slate-300 font-semibold mb-2 ml-1">Title</Text>
         <TextInput

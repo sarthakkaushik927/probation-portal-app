@@ -15,6 +15,7 @@ import { useRealtime } from '../../hooks/useRealtime';
 import { getNotifications } from '../../services/api';
 import { useNotificationsPoll } from '../../hooks/useNotificationsPoll';
 import * as Haptics from 'expo-haptics';
+import CustomTabBar from '../../components/CustomTabBar';
 
 export default function UserLayout() {
   const user = useAuthStore(state => state.user);
@@ -38,17 +39,30 @@ export default function UserLayout() {
   const [toast, setToast] = useState<string | null>(null);
   const toastOpacity = useState(new Animated.Value(0))[0];
 
+  const toastTranslateY = useState(new Animated.Value(-20))[0];
+
   const showToast = (text: string) => {
     setToast(text);
-    Animated.timing(toastOpacity, {
-      toValue: 1,
-      duration: 200,
-      useNativeDriver: true,
-      easing: Easing.out(Easing.ease),
-    }).start(() => {
+    Animated.parallel([
+      Animated.timing(toastOpacity, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+        easing: Easing.out(Easing.back(1.5)),
+      }),
+      Animated.timing(toastTranslateY, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+        easing: Easing.out(Easing.back(1.5)),
+      })
+    ]).start(() => {
       setTimeout(() => {
-        Animated.timing(toastOpacity, { toValue: 0, duration: 200, useNativeDriver: true }).start(() => setToast(null));
-      }, 3500);
+        Animated.parallel([
+          Animated.timing(toastOpacity, { toValue: 0, duration: 250, useNativeDriver: true }),
+          Animated.timing(toastTranslateY, { toValue: -20, duration: 250, useNativeDriver: true })
+        ]).start(() => setToast(null));
+      }, 4000);
     });
   };
 
@@ -84,6 +98,7 @@ export default function UserLayout() {
   return (
     <>
       <Tabs
+        tabBar={(props: any) => <CustomTabBar {...props} />}
         screenOptions={{
           headerShown: true,
           headerTransparent: true,
@@ -91,51 +106,19 @@ export default function UserLayout() {
           tabBarInactiveTintColor: inactiveColor,
           tabBarHideOnKeyboard: true,
         animation: 'fade', // screen transition animation
-        tabBarButton: (props) => {
-          return (
-            <TouchableOpacity 
-              {...(props as any)} 
-              activeOpacity={0.7}
-              onPress={(e) => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                if (props.onPress) props.onPress(e);
-              }}
-            />
-          );
-        },
-        tabBarBackground: () => (
-          <BlurView tint={isDark ? "dark" : "light"} intensity={80} style={StyleSheet.absoluteFill} />
-        ),
-        tabBarStyle: {
-          position: 'absolute',
-          bottom: Math.max(insets.bottom + 10, 24),
-          marginHorizontal: 20,
-          elevation: 0,
-          backgroundColor: tabBgColor,
-          borderWidth: 2,
-          borderColor: borderColor,
-          borderRadius: 100,
-          height: 72,
-          overflow: 'hidden',
-          paddingBottom: 6,
-        },
-        tabBarItemStyle: {
-          paddingTop: 8,
-          paddingBottom: 4,
-        },
         header: ({ options }) => {
           return (
             <View style={{ paddingTop: Math.max(insets.top, 20) + 16, paddingBottom: 10, backgroundColor: 'transparent' }} className="px-5">
               <View className="flex-row items-center justify-between">
                 <View className="rounded-full border-2 border-black dark:border-white overflow-hidden">
-                  <BlurView tint={isDark ? 'dark' : 'light'} intensity={80} className="px-5 py-2.5">
+                  <BlurView tint={isDark ? 'dark' : 'light'} intensity={40} style={{ backgroundColor: isDark ? 'rgba(9, 9, 11, 0.1)' : 'rgba(255, 255, 255, 0.2)' }} className="px-5 py-2.5">
                     <Text className="font-bold font-sans text-xl text-zinc-900 dark:text-white">
                       {options.title || 'Dashboard'}
                     </Text>
                   </BlurView>
                 </View>
                 <View className="rounded-full border-2 border-black dark:border-white overflow-hidden">
-                  <BlurView tint={isDark ? 'dark' : 'light'} intensity={80} className="flex-row items-center gap-2 px-3 py-1.5">
+                  <BlurView tint={isDark ? 'dark' : 'light'} intensity={40} style={{ backgroundColor: isDark ? 'rgba(9, 9, 11, 0.1)' : 'rgba(255, 255, 255, 0.2)' }} className="flex-row items-center gap-2 px-3 py-1.5">
                     <TouchableOpacity onPress={() => router.push('/(user)/notifications')} className="items-center justify-center w-9 h-9 relative">
                       <MaterialIcons name="notifications" size={22} color={activeColor} />
                       {unreadCount > 0 && (
@@ -214,13 +197,11 @@ export default function UserLayout() {
       />
     </Tabs>
     {toast && (
-      <Animated.View pointerEvents="none" style={{ position: 'absolute', top: Platform.OS === 'ios' ? 80 : 40, left: 20, right: 20, alignItems: 'center', opacity: toastOpacity, zIndex: 9999 }}>
-        <View className="rounded-2xl border border-white/20 dark:border-white/10 overflow-hidden shadow-xl">
-          <BlurView tint={isDark ? "dark" : "light"} intensity={80} style={{ paddingHorizontal: 20, paddingVertical: 12, backgroundColor: isDark ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)' }}>
-            <View className="flex-row items-center space-x-2 gap-2">
-              <MaterialIcons name="info-outline" size={20} color={isDark ? "#fff" : "#000"} />
-              <Text className="text-zinc-900 dark:text-white font-bold">{toast}</Text>
-            </View>
+      <Animated.View pointerEvents="none" style={{ position: 'absolute', top: Platform.OS === 'ios' ? 60 : 40, left: 16, right: 16, opacity: toastOpacity, transform: [{ translateY: toastTranslateY }], zIndex: 9999 }}>
+        <View className="rounded-2xl border-2 border-black/10 dark:border-white/20 overflow-hidden shadow-2xl w-full">
+          <BlurView tint={isDark ? "dark" : "light"} intensity={50} style={{ paddingHorizontal: 24, paddingVertical: 16, backgroundColor: isDark ? 'rgba(9, 9, 11, 0.2)' : 'rgba(255, 255, 255, 0.4)', flexDirection: 'row', alignItems: 'center' }}>
+            <MaterialIcons name="notifications-active" size={24} color={isDark ? "#fff" : "#000"} />
+            <Text className="text-zinc-900 dark:text-white font-bold text-base ml-3 flex-1">{toast}</Text>
           </BlurView>
         </View>
       </Animated.View>

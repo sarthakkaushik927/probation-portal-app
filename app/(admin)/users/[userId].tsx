@@ -15,6 +15,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { handleFileExport } from '../../../utils/exportHelper';
 
+import { useTabBackHandler } from '../../../hooks/useTabBackHandler';
 
 export default function UserDetail() {
   const { userId } = useLocalSearchParams<{ userId: string }>();
@@ -24,6 +25,8 @@ export default function UserDetail() {
   const isDark = colorScheme === 'dark';
   const iconColor = isDark ? '#fff' : '#000';
   const [selectedDomain, setSelectedDomain] = useState<string>('UNASSIGNED');
+
+  useTabBackHandler('/(admin)/users');
 
   const { data: user, isLoading } = useQuery({
     queryKey: ['adminUser', userId],
@@ -64,6 +67,15 @@ export default function UserDetail() {
       <Stack.Screen options={{ title: userData?.name || 'User Detail' }} />
       
       <View className="p-4">
+        {/* Back Button */}
+        <TouchableOpacity 
+          onPress={() => router.replace('/(admin)/users')}
+          className="flex-row items-center mb-4 bg-zinc-100 dark:bg-zinc-900 self-start px-3 py-2 rounded-full border border-black dark:border-white"
+        >
+          <MaterialIcons name="arrow-back" size={18} color={iconColor} />
+          <Text className="ml-1.5 font-bold text-xs uppercase tracking-widest text-zinc-900 dark:text-white">Back to Users</Text>
+        </TouchableOpacity>
+
         {/* User Info */}
         <GlassCard className="items-center mb-6 py-6 border-2">
           <View className="w-20 h-20 bg-zinc-100 dark:bg-zinc-900 border-2 border-black dark:border-white rounded-full items-center justify-center mb-3">

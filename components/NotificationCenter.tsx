@@ -56,7 +56,7 @@ export default function NotificationCenter() {
   return (
     <View className="flex-1" style={{ paddingTop: 130 }}>
       {unreadCount > 0 && (
-        <View className="flex-row justify-end items-center p-4 border-b-2 border-black dark:border-white h-16">
+        <View className="flex-row justify-end items-center px-4 pt-4 pb-2">
           <TouchableOpacity 
             className="bg-black dark:bg-white px-4 py-2 rounded-lg"
             onPress={() => {
@@ -96,9 +96,9 @@ export default function NotificationCenter() {
                 <TouchableOpacity 
                   className="flex-1 flex-row items-start"
                   onPress={() => {
-                    if (!item.isRead && item.userId) handleMarkRead(item.id);
+                    if (!item.isRead) handleMarkRead(item.id);
                   }}
-                  disabled={item.isRead || markReadMutation.isPending || !item.userId}
+                  disabled={item.isRead || markReadMutation.isPending}
                 >
                   <View className={`w-12 h-12 rounded-full items-center justify-center mr-4 border-2 border-black/10 dark:border-white/10 ${item.isRead ? 'bg-zinc-200/50 dark:bg-zinc-800/50' : 'bg-zinc-200 dark:bg-zinc-800'}`}>
                     <MaterialIcons 
@@ -125,24 +125,13 @@ export default function NotificationCenter() {
                   </View>
                 </TouchableOpacity>
 
-                {/* Actions */}
                 <View className="flex-row items-center space-x-2 gap-2">
-                  {!item.isRead && item.userId && (
-                    <TouchableOpacity 
-                      onPress={() => handleMarkRead(item.id)}
-                      className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-full"
-                    >
-                      <MaterialIcons name="mark-chat-read" size={20} color={isDark ? "#60a5fa" : "#3b82f6"} />
-                    </TouchableOpacity>
-                  )}
-                  {item.userId && (
-                    <TouchableOpacity 
-                      onPress={() => handleDelete(item.id)}
-                      className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full"
-                    >
-                      <MaterialIcons name="delete-outline" size={20} color={isDark ? "#f87171" : "#ef4444"} />
-                    </TouchableOpacity>
-                  )}
+                  <TouchableOpacity 
+                    onPress={() => handleDelete(item.id)}
+                    className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full"
+                  >
+                    <MaterialIcons name="delete-outline" size={20} color={isDark ? "#f87171" : "#ef4444"} />
+                  </TouchableOpacity>
                 </View>
               </View>
             </GlassCard>

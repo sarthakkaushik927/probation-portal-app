@@ -10,7 +10,7 @@ interface GlassCardProps extends ViewProps {
 }
 
 export default function GlassCard({ 
-  intensity = 50, 
+  intensity = 80, 
   tint,
   className = '', 
   children, 
@@ -23,9 +23,9 @@ export default function GlassCard({
   return (
     <View className={`overflow-hidden rounded-xl border-2 border-black dark:border-white ${className}`} {...props}>
       <BlurView 
-        intensity={intensity} 
+        intensity={40} 
         tint={resolvedTint} 
-        style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? 'rgba(9, 9, 11, 0.4)' : 'rgba(255, 255, 255, 0.4)' }]} 
+        style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? 'rgba(9, 9, 11, 0.1)' : 'rgba(255, 255, 255, 0.2)' }]} 
       />
       <View className="p-5 relative z-10 w-full">
         {children}

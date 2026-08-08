@@ -6,6 +6,9 @@ import { getAdminTasks, updateTask } from '../../../services/api';
 import { DOMAINS } from '../../../constants/domains';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import LoadingSpinner from '../../../components/LoadingSpinner';
+import { useTabBackHandler } from '../../../hooks/useTabBackHandler';
+import { MaterialIcons } from '@expo/vector-icons';
+import { useColorScheme } from 'nativewind';
 
 export default function EditTask() {
   const { taskId } = useLocalSearchParams<{ taskId: string }>();
@@ -17,6 +20,11 @@ export default function EditTask() {
   
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const iconColor = isDark ? '#fff' : '#000';
+
+  useTabBackHandler('/(admin)/tasks');
 
   const { data: tasks, isLoading } = useQuery({
     queryKey: ['adminTasks'],
@@ -40,7 +48,7 @@ export default function EditTask() {
     onSuccess: () => {
       Alert.alert('Success', 'Task updated successfully');
       queryClient.invalidateQueries({ queryKey: ['adminTasks'] });
-      router.back();
+      router.replace('/(admin)/tasks');
     },
     onError: (error: any) => {
       Alert.alert('Error', error.response?.data?.error || 'Failed to update task');
@@ -64,6 +72,15 @@ export default function EditTask() {
     >
       <Stack.Screen options={{ title: 'Edit Task' }} />
       
+      {/* Back Button */}
+      <TouchableOpacity 
+        onPress={() => router.replace('/(admin)/tasks')}
+        className="flex-row items-center mb-6 bg-zinc-100 dark:bg-zinc-900 self-start px-3 py-2 rounded-full border border-black dark:border-white"
+      >
+        <MaterialIcons name="arrow-back" size={18} color={iconColor} />
+        <Text className="ml-1.5 font-bold text-xs uppercase tracking-widest text-zinc-900 dark:text-white">Back to Tasks</Text>
+      </TouchableOpacity>
+
       <View className="mb-5">
         <Text className="text-gray-600 dark:text-slate-400 font-bold uppercase text-xs tracking-wider mb-2 ml-1">Title</Text>
         <TextInput

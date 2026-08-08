@@ -6,11 +6,18 @@ import LoadingSpinner from '../../../components/LoadingSpinner';
 import * as Linking from 'expo-linking';
 import { MaterialIcons } from '@expo/vector-icons';
 import DiscussionThread from '../../../components/DiscussionThread';
+import { useTabBackHandler } from '../../../hooks/useTabBackHandler';
+import { useColorScheme } from 'nativewind';
 
 export default function SubmissionDetail() {
   const { submissionId } = useLocalSearchParams<{ submissionId: string }>();
   const queryClient = useQueryClient();
   const router = useRouter();
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const iconColor = isDark ? '#fff' : '#000';
+
+  useTabBackHandler('/(admin)/submissions');
 
   const { data: submission, isLoading } = useQuery({
     queryKey: ['adminSubmission', submissionId],
@@ -57,7 +64,16 @@ export default function SubmissionDetail() {
     <ScrollView className="flex-1 bg-[#f4f7fc] dark:bg-slate-900">
       <Stack.Screen options={{ title: 'Review Submission' }} />
       
-      <View className="p-5">
+      <View className="p-5 pt-[130px]">
+        {/* Back Button */}
+        <TouchableOpacity 
+          onPress={() => router.replace('/(admin)/submissions')}
+          className="flex-row items-center mb-6 bg-zinc-100 dark:bg-zinc-900 self-start px-3 py-2 rounded-full border border-black dark:border-white"
+        >
+          <MaterialIcons name="arrow-back" size={18} color={iconColor} />
+          <Text className="ml-1.5 font-bold text-xs uppercase tracking-widest text-zinc-900 dark:text-white">Back to Projects</Text>
+        </TouchableOpacity>
+
         {/* User Info */}
         <View className="bg-white dark:bg-slate-800 p-6 rounded-[32px] shadow-soft mb-5 items-center">
           <View className="w-16 h-16 bg-blue-100 dark:bg-slate-700 rounded-full items-center justify-center mb-3">

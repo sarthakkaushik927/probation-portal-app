@@ -100,16 +100,40 @@ export default function ChatRoom({ channel = 'global-chat' }) {
   };
 
   const sendMutation = useMutation({
-    mutationFn: (content: string) => axios.post(`${API_URL}/chat`, { content }, { headers: { Authorization: `Bearer ${token}` } }),
-    onSuccess: () => {
-      setMessage('');
-      // scroll to show the new message (inverted list -> offset 0)
-      try {
-        flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
-      } catch (e) {
-        // ignore
-      }
+    mutationFn: (newMsg: { content: string, tempId: string }) => 
+      axios.post(`${API_URL}/chat`, { content: newMsg.content }, { headers: { Authorization: `Bearer ${token}` } }),
+    onMutate: async (newMsg) => {
+      await queryClient.cancelQueries({ queryKey: ['chat', channel] });
+      const previousMessages = queryClient.getQueryData(['chat', channel]);
+      
+      const optimisticMsg = {
+        id: newMsg.tempId,
+        content: newMsg.content,
+        userId: user?.id,
+        user: user, // local user object
+        createdAt: new Date().toISOString(),
+        status: 'sending'
+      };
+      
+      queryClient.setQueryData(['chat', channel], (old: any) => {
+        return [optimisticMsg, ...(old || [])];
+      });
+      
+      return { previousMessages, tempId: newMsg.tempId };
     },
+    onError: (err, newMsg, context: any) => {
+      queryClient.setQueryData(['chat', channel], (old: any) => {
+        return old.map((m: any) => m.id === context.tempId ? { ...m, status: 'failed' } : m);
+      });
+    },
+    onSuccess: (data, variables, context: any) => {
+      const realMsg = data.data.data;
+      queryClient.setQueryData(['chat', channel], (old: any) => {
+        const filtered = old.filter((m: any) => m.id !== context.tempId);
+        if (filtered.find((m: any) => m.id === realMsg.id)) return filtered;
+        return [{ ...realMsg, status: 'sent' }, ...filtered].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      });
+    }
   });
 
   const reactMutation = useMutation({
@@ -118,9 +142,21 @@ export default function ChatRoom({ channel = 'global-chat' }) {
 
   const handleSend = () => {
     const text = message.trim();
-    if (!text || sendMutation.isPending) return;
+    if (!text) return;
+    
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    sendMutation.mutate(text);
+    const tempId = `temp-${Date.now()}`;
+    sendMutation.mutate({ content: text, tempId });
+    setMessage('');
+    try {
+      flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+    } catch (e) {}
+  };
+
+  const retryMessage = (msg: any) => {
+    queryClient.setQueryData(['chat', channel], (old: any) => old.filter((m: any) => m.id !== msg.id));
+    const tempId = `temp-${Date.now()}`;
+    sendMutation.mutate({ content: msg.content, tempId });
   };
 
   const handleReact = (type: string) => {
@@ -153,14 +189,32 @@ export default function ChatRoom({ channel = 'global-chat' }) {
 
   const renderMessage = ({ item }: { item: any }) => {
     const isMe = item.userId === user?.id;
-    const isAdmin = item.user.role === 'ADMIN';
+    const isAdmin = item.user?.role === 'ADMIN';
 
-    // Basic @mention highlighting (e.g. @Sarthak)
+    const isSending = item.status === 'sending';
+    const isFailed = item.status === 'failed';
+    const isSent = item.status === 'sent' || (!isSending && !isFailed);
+
+    // Advanced @mention highlighting supporting spaces (e.g. @Satyam Agarwal)
     const renderContent = (text: string) => {
-      const parts = text.split(/(@\w+)/g);
+      let regex = /(@\w+)/g; // Fallback
+      if (directory && directory.length > 0) {
+        // Build regex matching exactly the names in the directory, longest first to avoid partial matches
+        const sortedNames = [...directory].map((u: any) => u.name).sort((a, b) => b.length - a.length);
+        const escapedNames = sortedNames.map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+        if (escapedNames) {
+          regex = new RegExp(`(@(?:${escapedNames}))`, 'gi');
+        }
+      }
+
+      const parts = text.split(regex);
       return parts.map((part, i) => {
         if (part.startsWith('@')) {
-          return <Text key={i} className="text-blue-500 font-bold">{part}</Text>;
+          const namePart = part.substring(1).toLowerCase();
+          const isRealUser = directory?.some((u: any) => u.name.toLowerCase() === namePart);
+          if (isRealUser || regex.source === '(@\\w+)') { // if fallback or real user
+            return <Text key={i} className="text-blue-500 font-bold">{part}</Text>;
+          }
         }
         return <Text key={i}>{part}</Text>;
       });
@@ -170,17 +224,31 @@ export default function ChatRoom({ channel = 'global-chat' }) {
       <View className={`mb-4 w-full ${isMe ? 'items-end' : 'items-start'}`}>
         {!isMe && (
           <Text className={`text-xs mb-1 ml-1 font-bold ${isAdmin ? 'text-purple-500' : 'text-zinc-500'}`}>
-            {item.user.name} {isAdmin && ' (Admin)'}
+            {item.user?.name || 'Unknown'} {isAdmin && ' (Admin)'}
           </Text>
         )}
-        <View className={`p-3 rounded-2xl max-w-[80%] ${isMe ? 'bg-blue-600 rounded-br-none' : 'bg-zinc-200 dark:bg-zinc-800 rounded-bl-none'}`}>
+        <View className={`p-3 rounded-2xl max-w-[80%] ${isMe ? (isFailed ? 'bg-red-500 rounded-br-none' : 'bg-blue-600 rounded-br-none') : 'bg-zinc-200 dark:bg-zinc-800 rounded-bl-none'} ${isSending ? 'opacity-70' : ''}`}>
           <Text className={`text-base ${isMe ? 'text-white' : 'text-zinc-900 dark:text-white'}`}>
             {renderContent(item.content)}
           </Text>
         </View>
-        <Text className="text-[10px] text-zinc-400 mt-1 mx-1">
-          {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-        </Text>
+        <View className={`flex-row items-center mt-1 mx-1 gap-1 ${isMe ? 'justify-end' : 'justify-start'}`}>
+          <Text className="text-[10px] text-zinc-400">
+            {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          </Text>
+          {isMe && (
+            <>
+              {isSending && <MaterialIcons name="schedule" size={10} color="#9ca3af" />}
+              {isSent && <MaterialIcons name="check" size={14} color="#9ca3af" />}
+              {isFailed && (
+                <TouchableOpacity onPress={() => retryMessage(item)} className="flex-row items-center gap-1 bg-red-100 dark:bg-red-900/30 px-1.5 py-0.5 rounded">
+                  <MaterialIcons name="refresh" size={12} color="#ef4444" />
+                  <Text className="text-[10px] text-red-500 font-bold">Retry</Text>
+                </TouchableOpacity>
+              )}
+            </>
+          )}
+        </View>
       </View>
     );
   };
@@ -251,7 +319,7 @@ export default function ChatRoom({ channel = 'global-chat' }) {
           </TouchableOpacity>
           <TouchableOpacity
             onPress={handleSend}
-            disabled={!message.trim() || sendMutation.isPending}
+            disabled={!message.trim()}
             activeOpacity={0.8}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             accessibilityLabel="Send message"
@@ -262,7 +330,7 @@ export default function ChatRoom({ channel = 'global-chat' }) {
               alignItems: 'center',
               justifyContent: 'center',
               backgroundColor: message.trim() ? '#2563eb' : (isDark ? '#374151' : '#e5e7eb'),
-              opacity: (!message.trim() || sendMutation.isPending) ? 0.6 : 1,
+              opacity: (!message.trim()) ? 0.6 : 1,
             }}
           >
             <MaterialIcons name="send" size={20} color="#fff" />

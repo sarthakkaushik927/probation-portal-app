@@ -1,7 +1,9 @@
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { User } from '../types';
 import DomainSwatch from './DomainSwatch';
 import { Image } from 'expo-image';
+import { BlurView } from 'expo-blur';
+import { useColorScheme } from 'nativewind';
 
 interface UserCardProps {
   user: User;
@@ -9,15 +11,19 @@ interface UserCardProps {
 }
 
 export default function UserCard({ user, onPress }: UserCardProps) {
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
   const initial = user.name ? user.name.charAt(0).toUpperCase() : '?';
 
   return (
     <TouchableOpacity 
       activeOpacity={0.7} 
       onPress={onPress}
-      className="bg-transparent dark:bg-transparent border-[3px] border-black dark:border-white p-4 rounded-xl mb-3 flex-row items-center"
+      className="bg-transparent dark:bg-transparent border-[3px] border-black dark:border-white rounded-xl mb-3 overflow-hidden relative"
       disabled={!onPress}
     >
+      <BlurView tint={isDark ? "dark" : "light"} intensity={40} style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? 'rgba(9, 9, 11, 0.1)' : 'rgba(255, 255, 255, 0.2)' }]} />
+      <View className="flex-row items-center p-4 relative z-10 w-full">
       <View className="relative w-12 h-12 rounded-full items-center justify-center mr-4 border-[3px] border-black dark:border-white bg-white dark:bg-zinc-950 overflow-hidden">
         {user.avatarData ? (
           <Image source={{ uri: user.avatarData }} style={{ width: '100%', height: '100%' }} contentFit="cover" />
@@ -41,6 +47,7 @@ export default function UserCard({ user, onPress }: UserCardProps) {
             <Text className="text-zinc-900 dark:text-white text-[10px] font-bold font-mono uppercase tracking-widest">{user.domain || 'UNASSIGNED'}</Text>
           </View>
         </View>
+      </View>
       </View>
     </TouchableOpacity>
   );

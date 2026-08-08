@@ -29,7 +29,7 @@ export default function SubmissionCard({ submission, onPress, isAdmin, onApprove
 
   return (
     <View className="rounded-xl border-[3px] border-black dark:border-white mb-4 overflow-hidden relative">
-      <BlurView tint={isDark ? "dark" : "light"} intensity={60} style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? 'rgba(9, 9, 11, 0.5)' : 'rgba(255, 255, 255, 0.5)' }]} />
+      <BlurView tint={isDark ? "dark" : "light"} intensity={40} style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? 'rgba(9, 9, 11, 0.1)' : 'rgba(255, 255, 255, 0.2)' }]} />
       
       <TouchableOpacity 
         className="p-4 relative z-10 w-full"

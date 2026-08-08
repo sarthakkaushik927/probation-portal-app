@@ -42,8 +42,8 @@ export default function Background({ children }: { children: React.ReactNode }) 
 
   return (
     <View style={styles.container} className="bg-white dark:bg-zinc-950">
-      <Animated.View className="absolute top-0 right-0 w-96 h-96 rounded-full -mt-20 -mr-20" style={[topStyle, { filter: isDark ? 'blur(70px)' : 'blur(60px)' } as any]} />
-      <Animated.View className="absolute bottom-0 left-0 w-96 h-96 rounded-full -mb-20 -ml-20" style={[bottomStyle, { filter: isDark ? 'blur(70px)' : 'blur(60px)' } as any]} />
+      <Animated.View className="absolute top-0 right-0 w-96 h-96 rounded-full -mt-20 -mr-20 blur-[70px]" style={[topStyle, { filter: isDark ? 'blur(70px)' : 'blur(60px)' } as any]} />
+      <Animated.View className="absolute bottom-0 left-0 w-96 h-96 rounded-full -mb-20 -ml-20 blur-[70px]" style={[bottomStyle, { filter: isDark ? 'blur(70px)' : 'blur(60px)' } as any]} />
       {children}
     </View>
   );

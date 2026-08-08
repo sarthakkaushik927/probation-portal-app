@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "14096859051",
+    "project_id": "probation-41a93",
+    "storage_bucket": "probation-41a93.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:14096859051:android:358b9a10f40f20f44edcee",
+        "android_client_info": {
+          "package_name": "com.nextgen.portal"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDsSwJf0lLxkYlX-sXMQfSHsPYJUtVlw7I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

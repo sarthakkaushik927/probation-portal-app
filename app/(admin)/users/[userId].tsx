@@ -63,7 +63,8 @@ export default function UserDetail() {
   const attendanceRate = totalDays > 0 ? Math.round((presentDays / totalDays) * 100) : 0;
 
   return (
-    <ScrollView className="flex-1 bg-white dark:bg-zinc-950" contentContainerStyle={{ paddingTop: 130, paddingBottom: 140 }}>
+    <Background>
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingTop: 130, paddingBottom: 140 }}>
       <Stack.Screen options={{ title: userData?.name || 'User Detail' }} />
       
       <View className="p-4">
@@ -187,5 +188,6 @@ export default function UserDetail() {
         </View>
       </View>
     </ScrollView>
+    </Background>
   );
 }

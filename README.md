@@ -1,50 +1,76 @@
-# Welcome to your Expo app 👋
+# Probation Portal App 🚀
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Welcome to the **Probation Portal** - the comprehensive mobile application for Next Gen Solutions probation management. 
+Built with cutting-edge React Native technologies, this app provides a seamless, beautiful, and fluid experience for both Students and Administrators.
 
-## Get started
+## 📱 Features
 
-1. Install dependencies
+### For Students
+- **Real-time Dashboard:** Track your attendance, upcoming deadlines, and current probation standing.
+- **Task Management:** Submit tasks, track progress, and view feedback directly from admins.
+- **Live Notifications:** Get instantly notified via Push Notifications & Pusher WebSockets when your tasks are reviewed or when announcements are made.
+- **Dark Mode Support:** Fluid and responsive UI built with NativeWind, supporting system-wide dark and light themes seamlessly.
 
+### For Administrators
+- **User Management:** Monitor all student activities, update domain assignments, and manage roles.
+- **Task Review Workflow:** Easily view student task submissions, review links (GitHub/Demo), and approve or reject submissions with remarks.
+- **Advanced Analytics:** Comprehensive charts (via React Native Chart Kit) to visualize probation performance and domain statistics.
+- **CSV Exports:** One-tap export of student data to CSV directly from the app.
+- **Live Chat:** Real-time communication channels for different domains (Web, Android, Cloud, etc.)
+
+## 🛠️ Technology Stack
+- **Framework:** [Expo](https://expo.dev) / [React Native](https://reactnative.dev)
+- **Routing:** [Expo Router](https://docs.expo.dev/router/introduction/) (File-based navigation)
+- **Styling:** [NativeWind v4](https://www.nativewind.dev/) (Tailwind CSS for React Native)
+- **State Management:** [Zustand](https://github.com/pmndrs/zustand)
+- **Data Fetching:** [TanStack React Query](https://tanstack.com/query/v5) (with AsyncStorage persistence)
+- **Animations:** [React Native Reanimated](https://docs.swmansion.com/react-native-reanimated/) & custom SVG integrations
+- **Real-time:** Pusher JS
+- **Push Notifications:** Expo Notifications & Firebase Admin (backend)
+
+## 📦 Getting Started
+
+### Prerequisites
+- Node.js (v18+)
+- [pnpm](https://pnpm.io/)
+- Expo CLI
+
+### Installation
+
+1. Clone the repository and navigate to the app directory:
    ```bash
-   npm install
+   cd probation-portal
    ```
 
-2. Start the app
-
+2. Install dependencies:
    ```bash
-   npx expo start
+   pnpm install
    ```
 
-In the output, you'll find options to open the app in a
+3. Setup environment variables:
+   Create a `.env` file in the root directory and add the necessary keys (API URLs, Pusher keys).
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+4. Start the development server:
+   ```bash
+   pnpm run start
+   ```
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+### Building for Android
 
-## Get a fresh project
-
-When you're ready, run:
+For local Android builds (if running into path length limitations on Windows), we recommend using npm with hoisted linker configuration or keeping the project on a top-level directory:
 
 ```bash
-npm run reset-project
+npx expo prebuild --platform android --clean
+cd android
+./gradlew assembleRelease
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## 🎨 Design System
+The application utilizes a custom design system with:
+- Glassmorphism effects (`GlassCard`)
+- Premium animated backgrounds (`Background.tsx`)
+- Contextual domain color coding
+- Interactive micro-animations for UX delight
 
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## 📄 License
+Internal use only. Next Gen Solutions.

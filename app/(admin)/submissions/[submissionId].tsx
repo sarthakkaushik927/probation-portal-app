@@ -8,6 +8,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import DiscussionThread from '../../../components/DiscussionThread';
 import { useTabBackHandler } from '../../../hooks/useTabBackHandler';
 import { useColorScheme } from 'nativewind';
+import Background from '../../../components/Background';
 
 export default function SubmissionDetail() {
   const { submissionId } = useLocalSearchParams<{ submissionId: string }>();
@@ -61,7 +62,8 @@ export default function SubmissionDetail() {
   const statusStyle = getStatusColor(submission.status);
 
   return (
-    <ScrollView className="flex-1 bg-[#f4f7fc] dark:bg-slate-900">
+    <Background>
+      <ScrollView className="flex-1">
       <Stack.Screen options={{ title: 'Review Submission' }} />
       
       <View className="p-5 pt-[130px]">
@@ -168,5 +170,6 @@ export default function SubmissionDetail() {
         <View className="h-20" />
       </View>
     </ScrollView>
+    </Background>
   );
 }

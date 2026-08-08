@@ -8,6 +8,7 @@ import { Stack, useRouter, Link } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useColorScheme } from 'nativewind';
 import Background from '../../../components/Background';
+import * as Haptics from 'expo-haptics';
 
 
 export default function AdminTasksList() {
@@ -27,7 +28,15 @@ export default function AdminTasksList() {
         data={tasks}
         keyExtractor={(item: any) => item.id}
         contentContainerStyle={{ padding: 16, paddingBottom: 140, paddingTop: 130 }}
-        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
+        refreshControl={
+          <RefreshControl 
+            refreshing={isRefetching} 
+            onRefresh={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              refetch();
+            }} 
+          />
+        }
         ListEmptyComponent={<EmptyState title="No tasks" message="Create a task to get started" />}
         renderItem={({ item }: { item: any }) => (
           <TaskCard 

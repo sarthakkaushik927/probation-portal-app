@@ -4,6 +4,7 @@ import { BlurView } from 'expo-blur';
 import { useColorScheme } from 'nativewind';
 import { Task } from '../types';
 import DomainSwatch from './DomainSwatch';
+import * as Haptics from 'expo-haptics';
 
 interface TaskCardProps {
   task: Task;
@@ -18,7 +19,10 @@ export default function TaskCard({ task, onPress }: TaskCardProps) {
   return (
     <TouchableOpacity 
       className="rounded-xl border-[3px] border-black dark:border-white mb-4 overflow-hidden relative"
-      onPress={onPress}
+      onPress={() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        if (onPress) onPress();
+      }}
       activeOpacity={0.7}
       disabled={!onPress}
     >

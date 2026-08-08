@@ -14,6 +14,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRealtime } from '../../hooks/useRealtime';
 import { getNotifications } from '../../services/api';
 import { useNotificationsPoll } from '../../hooks/useNotificationsPoll';
+import * as Haptics from 'expo-haptics';
 
 export default function AdminLayout() {
   const user = useAuthStore(state => state.user);
@@ -87,9 +88,22 @@ export default function AdminLayout() {
           tabBarActiveTintColor: activeColor,
           tabBarInactiveTintColor: inactiveColor,
           tabBarHideOnKeyboard: true,
-          tabBarBackground: () => (
-            <BlurView tint={isDark ? "dark" : "light"} intensity={80} style={StyleSheet.absoluteFill} />
-          ),
+        animation: 'fade', // screen transition animation
+        tabBarButton: (props) => {
+          return (
+            <TouchableOpacity 
+              {...(props as any)} 
+              activeOpacity={0.7}
+              onPress={(e) => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                if (props.onPress) props.onPress(e);
+              }}
+            />
+          );
+        },
+        tabBarBackground: () => (
+          <BlurView tint={isDark ? "dark" : "light"} intensity={80} style={StyleSheet.absoluteFill} />
+        ),
         tabBarStyle: {
           position: 'absolute',
           bottom: Math.max(insets.bottom + 10, 24),
@@ -101,7 +115,7 @@ export default function AdminLayout() {
           borderRadius: 100,
           height: 72,
           overflow: 'hidden',
-          paddingBottom: 6, // Give space for text labels
+          paddingBottom: 6,
         },
         tabBarItemStyle: {
           paddingTop: 8,
@@ -239,9 +253,14 @@ export default function AdminLayout() {
       />
     </Tabs>
     {toast && (
-      <Animated.View pointerEvents="none" style={{ position: 'absolute', top: Platform.OS === 'ios' ? 80 : 40, left: 20, right: 20, alignItems: 'center', opacity: toastOpacity }}>
-        <View style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.75)', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10 }}>
-          <Text style={{ color: '#fff', textAlign: 'center' }}>{toast}</Text>
+      <Animated.View pointerEvents="none" style={{ position: 'absolute', top: Platform.OS === 'ios' ? 80 : 40, left: 20, right: 20, alignItems: 'center', opacity: toastOpacity, zIndex: 9999 }}>
+        <View className="rounded-2xl border border-white/20 dark:border-white/10 overflow-hidden shadow-xl">
+          <BlurView tint={isDark ? "dark" : "light"} intensity={80} style={{ paddingHorizontal: 20, paddingVertical: 12, backgroundColor: isDark ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)' }}>
+            <View className="flex-row items-center space-x-2 gap-2">
+              <MaterialIcons name="info-outline" size={20} color={isDark ? "#fff" : "#000"} />
+              <Text className="text-zinc-900 dark:text-white font-bold">{toast}</Text>
+            </View>
+          </BlurView>
         </View>
       </Animated.View>
     )}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform, Dimensions } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useColorScheme } from 'nativewind';
@@ -8,6 +8,8 @@ import { useRealtime } from '../hooks/useRealtime';
 import axios from 'axios';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSequence, runOnJS } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
+import { getUserDirectory } from '../services/api';
+import * as Haptics from 'expo-haptics';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:4000/api';
 
@@ -54,10 +56,17 @@ export default function ChatRoom({ channel = 'global-chat' }) {
   const [flyingEmojis, setFlyingEmojis] = useState<{ id: string, type: string }[]>([]);
   const flatListRef = useRef<FlatList<any> | null>(null);
 
+  const [mentionQuery, setMentionQuery] = useState<string | null>(null);
+
   // Fetch initial history
   const { data: history } = useQuery({
     queryKey: ['chat', channel],
     queryFn: () => axios.get(`${API_URL}/chat`, { headers: { Authorization: `Bearer ${token}` } }).then(res => res.data.data),
+  });
+
+  const { data: directory } = useQuery({
+    queryKey: ['userDirectory'],
+    queryFn: () => getUserDirectory().then(res => res.data.data),
   });
 
   // Real-time subscriptions
@@ -110,12 +119,36 @@ export default function ChatRoom({ channel = 'global-chat' }) {
   const handleSend = () => {
     const text = message.trim();
     if (!text || sendMutation.isPending) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     sendMutation.mutate(text);
   };
 
   const handleReact = (type: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     triggerFlyingEmoji(type); // Optimistic local UI
     reactMutation.mutate(type); // Send to others
+  };
+
+  const handleTextChange = (text: string) => {
+    setMessage(text);
+    
+    // Check for @mention
+    const words = text.split(' ');
+    const lastWord = words[words.length - 1];
+    if (lastWord.startsWith('@')) {
+      setMentionQuery(lastWord.substring(1).toLowerCase());
+    } else {
+      setMentionQuery(null);
+    }
+  };
+
+  const handleMentionSelect = (name: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const words = message.split(' ');
+    words.pop();
+    const newText = [...words, `@${name} `].join(' ');
+    setMessage(newText.replace(/^\s+/, ''));
+    setMentionQuery(null);
   };
 
   const renderMessage = ({ item }: { item: any }) => {
@@ -152,11 +185,13 @@ export default function ChatRoom({ channel = 'global-chat' }) {
     );
   };
 
+  const filteredUsers = directory?.filter((u: any) => u.name.toLowerCase().includes(mentionQuery || '')) || [];
+
   return (
     <KeyboardAvoidingView 
       className="flex-1"
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      behavior="padding"
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 80}
     >
       <FlatList
         ref={flatListRef}
@@ -166,12 +201,35 @@ export default function ChatRoom({ channel = 'global-chat' }) {
         inverted
         contentContainerStyle={{ padding: 16, paddingBottom: 20 }}
         showsVerticalScrollIndicator={false}
+        keyboardDismissMode="interactive"
       />
 
       {/* Flying Emojis Overlay */}
       {flyingEmojis.map(emoji => (
         <FlyingEmoji key={emoji.id} id={emoji.id} type={emoji.type} onComplete={removeFlyingEmoji} />
       ))}
+
+      {/* Mentions Auto-complete */}
+      {mentionQuery !== null && filteredUsers.length > 0 && (
+        <View className="absolute bottom-20 left-4 right-4 max-h-48 rounded-xl overflow-hidden shadow-lg" style={{ backgroundColor: isDark ? '#18181b' : '#ffffff' }}>
+          <FlatList
+            data={filteredUsers.slice(0, 5)}
+            keyExtractor={item => item.id}
+            keyboardShouldPersistTaps="always"
+            renderItem={({ item }) => (
+              <TouchableOpacity 
+                className="p-3 border-b border-zinc-200 dark:border-zinc-800 flex-row items-center"
+                onPress={() => handleMentionSelect(item.name)}
+              >
+                <View className="w-8 h-8 rounded-full bg-zinc-200 dark:bg-zinc-800 mr-3 items-center justify-center">
+                  <Text className="text-zinc-500 font-bold">{item.name[0]}</Text>
+                </View>
+                <Text className="text-base text-zinc-900 dark:text-white font-bold">{item.name}</Text>
+              </TouchableOpacity>
+            )}
+          />
+        </View>
+      )}
 
       {/* Input Area */}
       <View className="m-4 overflow-hidden rounded-full border-2 border-black dark:border-white">
@@ -182,7 +240,7 @@ export default function ChatRoom({ channel = 'global-chat' }) {
           placeholder="Type a message... (Use @ to tag)"
           placeholderTextColor={isDark ? "#71717a" : "#a1a1aa"}
           value={message}
-          onChangeText={setMessage}
+          onChangeText={handleTextChange}
           onSubmitEditing={handleSend}
           multiline
           maxLength={500}

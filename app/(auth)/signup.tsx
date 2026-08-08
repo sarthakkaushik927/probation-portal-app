@@ -92,8 +92,7 @@ export default function SignupScreen() {
         >
           <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24, paddingBottom: 100 }}>
             <View className="items-center mb-8 mt-10">
-              <AnimatedLogo size={80} />
-              <Text className="text-5xl font-black font-sans text-zinc-900 dark:text-white mt-4 tracking-tighter uppercase">NEXTGEN</Text>
+              <AnimatedLogo />
               <Text className="text-zinc-500 dark:text-zinc-400 font-sans text-xs text-center px-6 mt-2 mb-6 leading-relaxed">
                 The ultimate portal for seamless collaboration, task management, and domain tracking.
               </Text>

@@ -44,7 +44,8 @@ export default function CreateTask() {
   };
 
   return (
-    <View className="flex-1 bg-white dark:bg-zinc-950">
+    <View className="flex-1 bg-white dark:bg-zinc-950 px-5">
+      <Stack.Screen options={{ title: 'Create Task' }} />
       {toastMessage && (
         <Animated.View 
           entering={FadeInUp.springify()} 

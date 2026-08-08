@@ -171,6 +171,9 @@ importers:
         specifier: ^5.0.5
         version: 5.0.14(@types/react@19.1.17)(react@19.1.0)(use-sync-external-store@1.6.0(react@19.1.0))
     devDependencies:
+      '@babel/plugin-transform-react-jsx':
+        specifier: ^7.29.7
+        version: 7.29.7(@babel/core@7.29.7)
       '@tanstack/react-query-devtools':
         specifier: ^5.83.0
         version: 5.101.4(@tanstack/react-query@5.101.4(react@19.1.0))(react@19.1.0)
@@ -183,6 +186,9 @@ importers:
       '@types/react-native':
         specifier: ^0.73.0
         version: 0.73.0(@babel/core@7.29.7)(@types/react@19.1.17)(react@19.1.0)
+      babel-preset-expo:
+        specifier: 54.0.12
+        version: 54.0.12(@babel/core@7.29.7)(@babel/runtime@7.29.7)(expo@54.0.36)(react-refresh@0.14.2)
       eslint:
         specifier: ^9.25.0
         version: 9.39.5(jiti@1.21.7)

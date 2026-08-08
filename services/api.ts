@@ -97,8 +97,10 @@ export const addSubmissionComment = (submissionId: string, message: string) =>
 export const getNotifications = () => api.get('/api/notifications');
 export const markNotificationRead = (id: string) => api.put(`/api/notifications/${id}/read`);
 export const markAllNotificationsRead = () => api.put('/api/notifications/read-all');
+export const deleteNotification = (id: string) => api.delete(`/api/notifications/${id}`);
 export const broadcastNotification = (title: string, body: string) => 
   api.post('/api/notifications/broadcast', { title, body });
+export const getUserDirectory = () => api.get('/api/user/directory');
 
 export const forgotPassword = (email: string) =>
   api.post('/api/auth/forgot-password', { email });

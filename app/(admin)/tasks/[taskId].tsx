@@ -58,7 +58,10 @@ export default function EditTask() {
   if (isLoading) return <LoadingSpinner />;
 
   return (
-    <ScrollView className="flex-1 bg-white dark:bg-zinc-950 p-5">
+    <ScrollView 
+      className="flex-1 bg-white dark:bg-zinc-950 px-5"
+      contentContainerStyle={{ paddingTop: 130, paddingBottom: 100 }}
+    >
       <Stack.Screen options={{ title: 'Edit Task' }} />
       
       <View className="mb-5">

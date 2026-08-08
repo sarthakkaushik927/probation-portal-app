@@ -76,8 +76,7 @@ export default function VerifyScreen() {
         >
           <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24, paddingBottom: 100 }}>
             <View className="items-center mb-8 mt-10">
-              <AnimatedLogo size={80} />
-              <Text className="text-5xl font-black font-sans text-zinc-900 dark:text-white mt-4 tracking-tighter uppercase">NEXTGEN</Text>
+              <AnimatedLogo />
               
               <View className="mt-6 items-center">
                 <Text className="text-2xl font-bold font-sans text-zinc-900 dark:text-white mb-1 tracking-tight text-center">Verify Email</Text>

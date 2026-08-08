@@ -9,6 +9,7 @@ import { useColorScheme } from 'nativewind';
 import { ThemeProvider, DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { View } from "react-native";
+import CustomSplashScreen from '../components/CustomSplashScreen';
 import "../global.css";
 
 // Prevent auto hide while we check auth
@@ -18,6 +19,7 @@ function RootLayoutNav() {
   const { colorScheme } = useColorScheme();
   const { token, user, loadFromStorage } = useAuthStore();
   const [isReady, setIsReady] = useState(false);
+  const [splashFinished, setSplashFinished] = useState(false);
   const segments = useSegments();
   const router = useRouter();
 
@@ -26,7 +28,7 @@ function RootLayoutNav() {
       .catch((e) => console.warn('Failed to load auth:', e))
       .finally(() => {
         setIsReady(true);
-        SplashScreen.hideAsync().catch(() => {});
+        // Note: CustomSplashScreen will hide the native one once it mounts
       });
   }, []);
 
@@ -98,6 +100,7 @@ function RootLayoutNav() {
           <Stack.Screen name="(admin)" />
           <Stack.Screen name="(user)" />
         </Stack>
+        {!splashFinished && <CustomSplashScreen onFinish={() => setSplashFinished(true)} />}
       </View>
     </ThemeProvider>
   );

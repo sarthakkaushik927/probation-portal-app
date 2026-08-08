@@ -11,7 +11,7 @@ import GlassCard from '../../components/GlassCard';
 import { useColorScheme } from 'nativewind';
 import { useState } from 'react';
 import Background from '../../components/Background';
-import { StatPieChart } from '../../components/ChartComponents';
+import { StatBarChart } from '../../components/ChartComponents';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { handleFileExport } from '../../utils/exportHelper';
@@ -156,13 +156,14 @@ export default function AdminDashboard() {
             <Text className="text-sm font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">Analytics</Text>
           </View>
           <View className="px-5 mb-8">
-            <StatPieChart 
+            <StatBarChart 
               title="Submission Status" 
-              data={[
-                { name: 'Pending', population: data?.pendingReviews || 0, color: '#f59e0b', legendFontColor: isDark ? '#fff' : '#000' },
-                { name: 'Approved', population: 5, color: '#10b981', legendFontColor: isDark ? '#fff' : '#000' },
-                { name: 'Rejected', population: 2, color: '#ef4444', legendFontColor: isDark ? '#fff' : '#000' },
-              ]} 
+              data={{
+                labels: ['Pending', 'Approved', 'Rejected'],
+                datasets: [{
+                  data: [data?.pendingReviews || 0, 5, 2],
+                }],
+              }} 
             />
           </View>
 

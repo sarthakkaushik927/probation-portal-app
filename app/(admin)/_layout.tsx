@@ -82,15 +82,8 @@ export default function AdminLayout() {
 
     return () => { try { unsub(); } catch (e) {} };
   }, [user?.id, subscribe, queryClient]);
-  // Poll for notifications as a fallback (ensures mobile/system pushes are backed by in-app toasts)
-  useNotificationsPoll((n: any) => {
-    try {
-      const title = n.title || 'Notification';
-      const body = n.body || '';
-      showToast(`${title}: ${body.length > 120 ? body.slice(0, 120) + '…' : body}`);
-    } catch (e) {}
-    queryClient.invalidateQueries({ queryKey: ['notifications'] });
-  }, 5000);
+  // Notifications are handled via Pusher realtime (above) + react-query's 60s refetchInterval.
+  // No aggressive polling needed.
   const unreadCount = notifications?.filter((n: any) => !n.isRead).length || 0;
 
   return (

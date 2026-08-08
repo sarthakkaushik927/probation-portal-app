@@ -9,7 +9,7 @@ import Skeleton from '../../components/Skeleton';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { MaterialIcons } from '@expo/vector-icons';
 import Background from '../../components/Background';
-import { StatPieChart } from '../../components/ChartComponents';
+import { StatBarChart } from '../../components/ChartComponents';
 import DomainSwatch from '../../components/DomainSwatch';
 import GlassCard from '../../components/GlassCard';
 import { useColorScheme } from 'nativewind';
@@ -155,16 +155,18 @@ export default function UserDashboard() {
           </View>
           <View className="px-5 mb-8">
             {totalTasks > 0 ? (
-              <StatPieChart 
+              <StatBarChart 
                 title="Tasks Overview" 
-                data={[
-                  { name: 'Completed', population: totalSubmitted, color: '#10b981', legendFontColor: isDark ? '#fff' : '#000' },
-                  { name: 'Pending', population: pendingTasks > 0 ? pendingTasks : 0, color: '#f59e0b', legendFontColor: isDark ? '#fff' : '#000' },
-                ]} 
+                data={{
+                  labels: ['Completed', 'Pending'],
+                  datasets: [{
+                    data: [totalSubmitted, pendingTasks > 0 ? pendingTasks : 0],
+                  }],
+                }} 
               />
             ) : (
               <GlassCard className="p-8 items-center justify-center">
-                <MaterialIcons name="pie-chart-outline" size={48} color={iconColor} style={{ opacity: 0.3 }} className="mb-4" />
+                <MaterialIcons name="bar-chart" size={48} color={iconColor} style={{ opacity: 0.3 }} className="mb-4" />
                 <Text className="text-zinc-500 dark:text-zinc-400 font-bold text-center">No task data available yet.</Text>
                 <Text className="text-zinc-400 dark:text-zinc-500 text-sm text-center mt-1">Analytics will appear here once you have tasks.</Text>
               </GlassCard>

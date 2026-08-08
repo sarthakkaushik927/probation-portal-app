@@ -5,6 +5,7 @@ import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import { useAuthStore } from '../store/auth';
 import { savePushToken } from '../services/api';
+import { useRouter } from 'expo-router';
 
 if (Platform.OS !== 'web') {
   Notifications.setNotificationHandler({
@@ -26,6 +27,8 @@ export function usePushNotifications() {
   
   const { user } = useAuthStore();
 
+  const router = useRouter();
+
   useEffect(() => {
     if (Platform.OS === 'web') return;
 
@@ -42,13 +45,17 @@ export function usePushNotifications() {
 
     responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
       console.log('Notification tapped!', response);
+      const data = response.notification.request.content.data;
+      if (data && data.url) {
+        router.push(data.url as any);
+      }
     });
 
     return () => {
       notificationListener.current?.remove();
       responseListener.current?.remove();
     };
-  }, [user]);
+  }, [user, router]);
 
   return {
     expoPushToken,

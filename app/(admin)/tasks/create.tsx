@@ -10,6 +10,8 @@ import { MaterialIcons } from '@expo/vector-icons';
 import GlassCard from '../../../components/GlassCard';
 import { useTabBackHandler } from '../../../hooks/useTabBackHandler';
 import { useColorScheme } from 'nativewind';
+import * as DocumentPicker from 'expo-document-picker';
+import { uploadToCloudinary } from '../../../utils/cloudinary';
 
 export default function CreateTask() {
   const [title, setTitle] = useState('');
@@ -18,6 +20,8 @@ export default function CreateTask() {
   const [deadline, setDeadline] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [toastMessage, setToastMessage] = useState<{title: string, message: string, type: 'success' | 'error'} | null>(null);
+  const [attachment, setAttachment] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -28,7 +32,7 @@ export default function CreateTask() {
   useTabBackHandler('/(admin)/tasks');
 
   const createMutation = useMutation({
-    mutationFn: () => createTask({ title, description, domain, deadline: deadline.toISOString() }),
+    mutationFn: () => createTask({ title, description, domain, deadline: deadline.toISOString(), attachments: attachment ? [attachment] : [] }),
     onSuccess: () => {
       setToastMessage({ title: 'Success', message: 'Task created successfully', type: 'success' });
       queryClient.invalidateQueries({ queryKey: ['adminTasks'] });
@@ -150,10 +154,45 @@ export default function CreateTask() {
         )}
       </View>
 
+      <View className="mb-8">
+        <Text className="text-gray-700 dark:text-slate-300 font-semibold mb-2 ml-1">Attachment</Text>
+        <TouchableOpacity 
+          className="w-full bg-white dark:bg-zinc-900 p-4 rounded-xl border-[3px] border-black dark:border-white items-center flex-row justify-center"
+          onPress={async () => {
+            try {
+              const result = await DocumentPicker.getDocumentAsync({ type: '*/*', copyToCacheDirectory: true });
+              if (!result.canceled && result.assets && result.assets.length > 0) {
+                setIsUploading(true);
+                const uri = result.assets[0].uri;
+                const type = uri.match(/\.(jpg|jpeg|png|gif)$/i) ? 'image' : 'raw';
+                const url = await uploadToCloudinary(uri, type);
+                setAttachment(url);
+              }
+            } catch (e) {
+              Alert.alert('Upload Failed', 'Failed to upload attachment to Cloudinary');
+            } finally {
+              setIsUploading(false);
+            }
+          }}
+          disabled={isUploading}
+        >
+          {isUploading ? (
+            <ActivityIndicator size="small" color={iconColor} style={{ marginRight: 8 }} />
+          ) : attachment ? (
+            <MaterialIcons name="check-circle" size={20} color="#10b981" style={{ marginRight: 8 }} />
+          ) : (
+            <MaterialIcons name="attach-file" size={20} color={iconColor} style={{ marginRight: 8 }} />
+          )}
+          <Text className="text-zinc-900 dark:text-white font-mono font-bold uppercase tracking-widest">
+            {isUploading ? 'Uploading...' : attachment ? 'File Attached' : 'Attach File'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       <TouchableOpacity 
-        className={`w-full py-4 px-6 rounded-xl items-center mb-12 border-[3px] border-black dark:border-white ${createMutation.isPending ? 'bg-zinc-300 dark:bg-zinc-700' : 'bg-[#e0e7ff] dark:bg-blue-900'} flex-row justify-center`}
+        className={`w-full py-4 px-6 rounded-xl items-center mb-12 border-[3px] border-black dark:border-white ${createMutation.isPending || isUploading ? 'bg-zinc-300 dark:bg-zinc-700' : 'bg-[#e0e7ff] dark:bg-blue-900'} flex-row justify-center`}
         onPress={handleCreate}
-        disabled={createMutation.isPending}
+        disabled={createMutation.isPending || isUploading}
       >
         {createMutation.isPending && (
           <ActivityIndicator size="small" color="#71717a" style={{ marginRight: 8 }} />

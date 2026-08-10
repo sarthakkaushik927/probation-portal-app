@@ -34,7 +34,7 @@ export default function SubmissionCard({ submission, onPress, isAdmin, onApprove
     Linking.openURL(formattedUrl).catch(err => console.error("An error occurred", err));
   };
 
-  const isLate = submission.task?.deadline && new Date(submission.createdAt) > new Date(submission.task.deadline);
+  const isLate = Boolean(submission.task?.deadline) && new Date(submission.createdAt) > new Date(submission.task!.deadline!);
 
   return (
     <View className="rounded-xl border-[3px] border-black dark:border-white mb-4 overflow-hidden relative">
@@ -55,11 +55,11 @@ export default function SubmissionCard({ submission, onPress, isAdmin, onApprove
               <Text className="text-lg font-bold font-sans text-zinc-900 dark:text-white flex-1" numberOfLines={1}>
                 {submission.task?.title || 'Unknown Task'}
               </Text>
-              {isLate && (
+              {Boolean(isLate) ? (
                 <View className="bg-red-600 dark:bg-red-500 px-1.5 py-0.5 rounded ml-2 shadow-sm">
                   <Text className="text-white font-black text-[9px] tracking-widest uppercase">LATE</Text>
                 </View>
-              )}
+              ) : null}
             </View>
             <View className="flex-row items-center mt-0.5">
               {submission.user?.avatarData ? (

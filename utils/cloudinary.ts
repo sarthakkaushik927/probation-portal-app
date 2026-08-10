@@ -1,4 +1,4 @@
-export async function uploadToCloudinary(fileUri: string, type: 'image' | 'video' | 'raw' = 'image'): Promise<string> {
+export async function uploadToCloudinary(fileUri: string, type: 'image' | 'video' | 'raw' = 'image', fileName?: string, mimeType?: string): Promise<string> {
   const CLOUD_NAME = 'fx6ulacf';
   const UPLOAD_PRESET = 'probation app';
   
@@ -6,14 +6,14 @@ export async function uploadToCloudinary(fileUri: string, type: 'image' | 'video
 
   const formData = new FormData();
   
-  const filename = fileUri.split('/').pop() || 'upload.jpg';
+  const filename = fileName || fileUri.split('/').pop() || 'upload.jpg';
   const match = /\.(\w+)$/.exec(filename);
   const ext = match?.[1] || 'jpg';
   
   // Cloudinary requires specific format for React Native FormData
   const fileObj = {
     uri: fileUri,
-    type: type === 'image' ? `image/${ext}` : `application/${ext}`,
+    type: mimeType || (type === 'image' ? `image/${ext}` : `application/${ext}`),
     name: filename,
   };
 

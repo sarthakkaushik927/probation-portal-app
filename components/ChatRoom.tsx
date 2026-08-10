@@ -227,19 +227,26 @@ export default function ChatRoom({ channel = 'global-chat' }) {
             {item.user?.name || 'Unknown'} {isAdmin && ' (Admin)'}
           </Text>
         )}
-        <View className={`p-3 rounded-2xl max-w-[80%] ${isMe ? (isFailed ? 'bg-red-500 rounded-br-none' : 'bg-blue-600 rounded-br-none') : 'bg-zinc-200 dark:bg-zinc-800 rounded-bl-none'} ${isSending ? 'opacity-70' : ''}`}>
-          <Text className={`text-base ${isMe ? 'text-white' : 'text-zinc-900 dark:text-white'}`}>
-            {renderContent(item.content)}
-          </Text>
+        <View className={`max-w-[80%] rounded-2xl overflow-hidden shadow-sm border ${isFailed ? 'border-red-500' : 'border-black/10 dark:border-white/20'} ${isMe ? 'rounded-br-none' : 'rounded-bl-none'} ${isSending ? 'opacity-70' : ''}`}>
+          <BlurView 
+            tint={isDark ? 'dark' : 'light'} 
+            intensity={60} 
+            style={{ backgroundColor: isDark ? (isMe ? (isFailed ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255, 255, 255, 0.1)') : 'rgba(9, 9, 11, 0.4)') : (isMe ? (isFailed ? 'rgba(239, 68, 68, 0.1)' : 'rgba(0, 0, 0, 0.05)') : 'rgba(255, 255, 255, 0.6)') }}
+            className="p-3"
+          >
+            <Text className={`text-base ${isMe ? 'text-zinc-900 dark:text-white' : 'text-zinc-900 dark:text-white'}`}>
+              {renderContent(item.content)}
+            </Text>
+          </BlurView>
         </View>
         <View className={`flex-row items-center mt-1 mx-1 gap-1 ${isMe ? 'justify-end' : 'justify-start'}`}>
-          <Text className="text-[10px] text-zinc-400">
+          <Text className={`text-[10px] ${isMe ? 'text-zinc-500 dark:text-zinc-400' : 'text-zinc-400'}`}>
             {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </Text>
           {isMe && (
             <>
-              {isSending && <MaterialIcons name="schedule" size={10} color="#9ca3af" />}
-              {isSent && <MaterialIcons name="check" size={14} color="#9ca3af" />}
+              {isSending && <MaterialIcons name="schedule" size={10} color={isDark ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.5)"} />}
+              {isSent && <MaterialIcons name="check" size={14} color={isDark ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.5)"} />}
               {isFailed && (
                 <TouchableOpacity onPress={() => retryMessage(item)} className="flex-row items-center gap-1 bg-red-100 dark:bg-red-900/30 px-1.5 py-0.5 rounded">
                   <MaterialIcons name="refresh" size={12} color="#ef4444" />
@@ -270,6 +277,7 @@ export default function ChatRoom({ channel = 'global-chat' }) {
         contentContainerStyle={{ padding: 16, paddingBottom: 20 }}
         showsVerticalScrollIndicator={false}
         keyboardDismissMode="interactive"
+        keyboardShouldPersistTaps="handled"
       />
 
       {/* Flying Emojis Overlay */}
@@ -321,7 +329,7 @@ export default function ChatRoom({ channel = 'global-chat' }) {
             onPress={handleSend}
             disabled={!message.trim()}
             activeOpacity={0.8}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
             accessibilityLabel="Send message"
             style={{
               width: 40,

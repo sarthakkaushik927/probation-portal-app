@@ -2,7 +2,7 @@
   "expo": {
     "name": "CCC_Probation",
     "slug": "probation-portal",
-    "version": "1.0.0",
+    "version": "1.4.0",
     "orientation": "portrait",
     "icon": "./assets/images/n-icon.png",
     "scheme": "probationportal",
@@ -13,6 +13,7 @@
     },
     "android": {
       "package": "com.nextgen.portal",
+      "versionCode": 4,
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
@@ -67,7 +68,10 @@
       "policy": "appVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/e8a6c504-9a3d-488e-a866-b8ae2d2bc708"
+      "url": "https://u.expo.dev/e8a6c504-9a3d-488e-a866-b8ae2d2bc708",
+      "requestHeaders": {
+        "expo-channel-name": "production"
+      }
     }
   }
 }

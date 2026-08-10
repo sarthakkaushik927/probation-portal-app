@@ -163,9 +163,10 @@ export default function CreateTask() {
               const result = await DocumentPicker.getDocumentAsync({ type: '*/*', copyToCacheDirectory: true });
               if (!result.canceled && result.assets && result.assets.length > 0) {
                 setIsUploading(true);
-                const uri = result.assets[0].uri;
-                const type = uri.match(/\.(jpg|jpeg|png|gif)$/i) ? 'image' : 'raw';
-                const url = await uploadToCloudinary(uri, type);
+                const asset = result.assets[0];
+                const uri = asset.uri;
+                const type = asset.name.match(/\.(jpg|jpeg|png|gif)$/i) ? 'image' : 'raw';
+                const url = await uploadToCloudinary(uri, type, asset.name, asset.mimeType);
                 setAttachment(url);
               }
             } catch (e) {

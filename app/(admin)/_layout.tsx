@@ -227,6 +227,21 @@ export default function AdminLayout() {
           title: 'Profile',
         }}
       />
+      <Tabs.Screen
+        name="discussion/[submissionId]"
+        options={{
+          href: null,
+          headerShown: true,
+          headerTitle: 'Discussion',
+        }}
+      />
+      <Tabs.Screen
+        name="submissions/task/[taskId]"
+        options={{
+          href: null,
+          headerShown: false,
+        }}
+      />
     </Tabs>
     {toast && (
       <Animated.View pointerEvents="none" style={{ position: 'absolute', top: Platform.OS === 'ios' ? 60 : 40, left: 16, right: 16, opacity: toastOpacity, transform: [{ translateY: toastTranslateY }], zIndex: 9999 }}>

@@ -175,6 +175,9 @@ export default function LoginScreen() {
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
+        <View className="absolute bottom-2 right-4 pointer-events-none">
+          <Text className="text-zinc-400 dark:text-zinc-600 text-xs font-sans font-medium">v1.4.0</Text>
+        </View>
       </SafeAreaView>
     </Background>
   );

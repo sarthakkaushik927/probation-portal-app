@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -10,7 +10,9 @@ import GlassCard from '../../../components/GlassCard';
 import { MaterialIcons } from '@expo/vector-icons';
 import Background from '../../../components/Background';
 import DiscussionThread from '../../../components/DiscussionThread';
-import { useTabBackHandler } from '../../../hooks/useTabBackHandler';
+import Animated, { FadeInUp, FadeOutUp } from 'react-native-reanimated';
+import * as Linking from 'expo-linking';
+import * as Haptics from 'expo-haptics';
 
 export default function UserTaskDetail() {
   const { taskId } = useLocalSearchParams<{ taskId: string }>();
@@ -18,11 +20,10 @@ export default function UserTaskDetail() {
   const [demoLink, setDemoLink] = useState('');
   const [remarks, setRemarks] = useState('');
   const [isEditing, setIsEditing] = useState(false);
+  const [toastMessage, setToastMessage] = useState<{title: string, message: string, type: 'success' | 'error'} | null>(null);
   
   const router = useRouter();
   const queryClient = useQueryClient();
-
-  useTabBackHandler('/(user)/tasks');
 
   const { data: result, isLoading } = useQuery({
     queryKey: ['userTask', taskId],
@@ -33,34 +34,39 @@ export default function UserTaskDetail() {
   const submitMutation = useMutation({
     mutationFn: () => createSubmission({ taskId, githubLink, demoLink, remarks }),
     onSuccess: () => {
-      Alert.alert('Success', 'Task submitted successfully!');
+      setToastMessage({ title: 'Success', message: 'Task submitted successfully!', type: 'success' });
       queryClient.invalidateQueries({ queryKey: ['userTask', taskId] });
       queryClient.invalidateQueries({ queryKey: ['userSubmissions'] });
-      queryClient.invalidateQueries({ queryKey: ['userTasks'] }); // to update dashboard count
+      queryClient.invalidateQueries({ queryKey: ['userTasks'] });
+      setTimeout(() => setToastMessage(null), 3000);
     },
     onError: (error: any) => {
       const msg = typeof error.response?.data?.error === 'string' ? error.response.data.error : 'Failed to submit task';
-      Alert.alert('Error', msg);
+      setToastMessage({ title: 'Error', message: msg, type: 'error' });
+      setTimeout(() => setToastMessage(null), 3000);
     }
   });
 
   const updateMutation = useMutation({
     mutationFn: () => updateSubmission(taskId, { githubLink, demoLink, remarks }),
     onSuccess: () => {
-      Alert.alert('Success', 'Submission updated successfully!');
+      setToastMessage({ title: 'Success', message: 'Submission updated successfully!', type: 'success' });
       setIsEditing(false);
       queryClient.invalidateQueries({ queryKey: ['userTask', taskId] });
       queryClient.invalidateQueries({ queryKey: ['userSubmissions'] });
+      setTimeout(() => setToastMessage(null), 3000);
     },
     onError: (error: any) => {
       const msg = typeof error.response?.data?.error === 'string' ? error.response.data.error : 'Failed to update submission';
-      Alert.alert('Error', msg);
+      setToastMessage({ title: 'Error', message: msg, type: 'error' });
+      setTimeout(() => setToastMessage(null), 3000);
     }
   });
 
   const handleSubmit = () => {
     if (!githubLink || !demoLink) {
-      Alert.alert('Error', 'Please provide both GitHub and Demo links');
+      setToastMessage({ title: 'Error', message: 'Please provide both GitHub and Demo links', type: 'error' });
+      setTimeout(() => setToastMessage(null), 3000);
       return;
     }
     if (isEditing) {
@@ -77,15 +83,39 @@ export default function UserTaskDetail() {
 
   return (
     <SafeAreaView className="flex-1 bg-white dark:bg-zinc-950">
+      {toastMessage && (
+        <Animated.View 
+          entering={FadeInUp.springify()} 
+          exiting={FadeOutUp.duration(300)}
+          className="absolute top-12 left-5 right-5 z-[999]"
+          style={{ elevation: 99 }}
+        >
+          <GlassCard className={`flex-row items-center p-4 border-2 shadow-sm ${toastMessage.type === 'success' ? 'border-green-500' : toastMessage.type === 'error' ? 'border-red-500' : 'border-black dark:border-white'}`} intensity={90}>
+            <View className={`w-10 h-10 rounded-full items-center justify-center mr-3 border-2 ${toastMessage.type === 'success' ? 'border-green-500 bg-green-500/20' : 'border-red-500 bg-red-500/20'}`}>
+              <MaterialIcons name={toastMessage.type === 'success' ? 'check' : 'error-outline'} size={24} color={toastMessage.type === 'success' ? '#10b981' : '#ef4444'} />
+            </View>
+            <View className="flex-1">
+              <Text className="text-zinc-900 dark:text-white font-bold font-sans text-base">{toastMessage.title}</Text>
+              <Text className="text-zinc-500 dark:text-zinc-400 font-sans text-sm">{toastMessage.message}</Text>
+            </View>
+          </GlassCard>
+        </Animated.View>
+      )}
       <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
         className="flex-1"
       >
-      <ScrollView contentContainerStyle={{ padding: 16, paddingTop: 90 }}>
+      <ScrollView 
+        contentContainerStyle={{ padding: 16, paddingTop: 90 }}
+        keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets={true}
+        contentInsetAdjustmentBehavior="never"
+      >
         
         {/* Custom Back Button */}
         <View className="flex-row items-center mb-6 mt-4">
-          <TouchableOpacity onPress={() => router.replace('/(user)/tasks')} className="flex-row items-center bg-zinc-100 dark:bg-zinc-900 px-3 py-1.5 rounded-full border-2 border-black dark:border-white mr-4">
+          <TouchableOpacity onPress={() => router.back()} className="flex-row items-center bg-zinc-100 dark:bg-zinc-900 px-3 py-1.5 rounded-full border-2 border-black dark:border-white mr-4">
             <MaterialIcons name="arrow-back" size={18} color="#71717a" className="dark:text-zinc-400" />
             <Text className="ml-1 font-bold text-zinc-900 dark:text-white uppercase tracking-widest text-xs">Back</Text>
           </TouchableOpacity>
@@ -153,12 +183,24 @@ export default function UserTaskDetail() {
             
             <View className="mb-4">
               <Text className="text-zinc-500 font-bold uppercase text-xs mb-1">GitHub Link</Text>
-              <Text className="text-zinc-900 dark:text-white font-medium">{submission.githubLink}</Text>
+              <TouchableOpacity onPress={() => {
+                const url = submission.githubLink;
+                const formattedUrl = url.startsWith('http://') || url.startsWith('https://') ? url : `https://${url}`;
+                Linking.openURL(formattedUrl).catch(err => console.error("An error occurred", err));
+              }}>
+                <Text className="text-blue-500 dark:text-blue-400 font-medium underline">{submission.githubLink}</Text>
+              </TouchableOpacity>
             </View>
             
             <View className="mb-4">
               <Text className="text-zinc-500 font-bold uppercase text-xs mb-1">Demo Link</Text>
-              <Text className="text-zinc-900 dark:text-white font-medium">{submission.demoLink}</Text>
+              <TouchableOpacity onPress={() => {
+                const url = submission.demoLink;
+                const formattedUrl = url.startsWith('http://') || url.startsWith('https://') ? url : `https://${url}`;
+                Linking.openURL(formattedUrl).catch(err => console.error("An error occurred", err));
+              }}>
+                <Text className="text-blue-500 dark:text-blue-400 font-medium underline">{submission.demoLink}</Text>
+              </TouchableOpacity>
             </View>
             
             {submission.remarks && (
@@ -221,12 +263,12 @@ export default function UserTaskDetail() {
             </View>
             
             <TouchableOpacity 
-              className={`w-full py-4 px-6 rounded-xl items-center ${submitMutation.isPending ? 'bg-zinc-800' : 'bg-white'} flex-row justify-center`}
+              className={`w-full py-4 px-6 rounded-xl items-center ${submitMutation.isPending || updateMutation.isPending ? 'bg-zinc-800 dark:bg-zinc-700' : 'bg-white dark:bg-zinc-200'} flex-row justify-center`}
               onPress={handleSubmit}
-              disabled={submitMutation.isPending}
+              disabled={submitMutation.isPending || updateMutation.isPending}
             >
-              {submitMutation.isPending ? (
-                <ActivityIndicator color="#000000" />
+              {submitMutation.isPending || updateMutation.isPending ? (
+                <ActivityIndicator color="#ffffff" />
               ) : (
                 <>
                   <Text className="text-black text-sm font-bold font-mono uppercase tracking-widest mr-2">
@@ -239,9 +281,24 @@ export default function UserTaskDetail() {
           </GlassCard>
         )}
 
-        {/* Discussion Thread - only show when submission exists */}
+        {/* Discussion Link */}
         {submission && (
-          <DiscussionThread submissionId={submission.id} />
+          <TouchableOpacity 
+            className="bg-zinc-100 dark:bg-zinc-900 border-2 border-black dark:border-white p-5 rounded-xl mb-6 flex-row items-center justify-between"
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              router.push(`/discussion/${submission.id}` as any);
+            }}
+          >
+            <View className="flex-row items-center">
+              <MaterialIcons name="forum" size={24} color="#71717a" className="mr-3 dark:text-zinc-400" />
+              <View>
+                <Text className="text-zinc-900 dark:text-white font-bold text-base">Discussion & Feedback</Text>
+                <Text className="text-zinc-500 dark:text-zinc-400 text-xs mt-0.5">View comments and feedback from admins</Text>
+              </View>
+            </View>
+            <MaterialIcons name="chevron-right" size={24} color="#71717a" />
+          </TouchableOpacity>
         )}
 
         <View className="h-24" />

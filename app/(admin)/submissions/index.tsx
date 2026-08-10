@@ -7,6 +7,36 @@ import LoadingSpinner from '../../../components/LoadingSpinner';
 import EmptyState from '../../../components/EmptyState';
 import { Stack, useRouter } from 'expo-router';
 import Background from '../../../components/Background';
+import { MaterialIcons } from '@expo/vector-icons';
+import GlassCard from '../../../components/GlassCard';
+import { useColorScheme } from 'nativewind';
+
+const TaskCard = ({ item }: { item: any }) => {
+  const router = useRouter();
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
+
+  return (
+    <TouchableOpacity 
+      className="mb-4"
+      onPress={() => router.push(`/(admin)/submissions/task/${item.task.id}` as any)}
+      activeOpacity={0.7}
+    >
+      <GlassCard className="p-1">
+        <View className="flex-row items-center">
+          <View className="w-10 h-10 rounded-full bg-zinc-200 dark:bg-zinc-800 items-center justify-center mr-3 border-2 border-black dark:border-white">
+            <MaterialIcons name="assignment" size={18} color={isDark ? '#ffffff' : '#000000'} />
+          </View>
+          <View className="flex-1">
+            <Text className="text-lg font-black text-zinc-900 dark:text-white mb-0.5" numberOfLines={1}>{item.task.title}</Text>
+            <Text className="text-zinc-500 dark:text-zinc-400 text-xs font-bold uppercase tracking-widest">{item.submissions.length} Submissions</Text>
+          </View>
+          <MaterialIcons name="chevron-right" size={24} color="#71717a" />
+        </View>
+      </GlassCard>
+    </TouchableOpacity>
+  );
+};
 
 
 export default function AdminSubmissionsList() {
@@ -46,6 +76,23 @@ export default function AdminSubmissionsList() {
     return submissions.filter((s: any) => s.status === filter);
   }, [submissions, filter]);
 
+  const groupedSubmissions = useMemo(() => {
+    if (!filteredSubmissions) return [];
+    
+    const groups: Record<string, { task: any; submissions: any[] }> = {};
+    
+    filteredSubmissions.forEach((sub: any) => {
+      const taskId = sub.task?.id;
+      if (!taskId) return;
+      if (!groups[taskId]) {
+        groups[taskId] = { task: sub.task, submissions: [] };
+      }
+      groups[taskId].submissions.push(sub);
+    });
+    
+    return Object.values(groups);
+  }, [filteredSubmissions]);
+
   const FilterButton = ({ title, status }: { title: string, status: typeof filter }) => (
     <TouchableOpacity
       onPress={() => setFilter(status)}
@@ -68,7 +115,7 @@ export default function AdminSubmissionsList() {
   return (
     <Background>
       <Stack.Screen options={{ title: 'All Submissions', headerShown: true }} />
-      <View className="pt-[110px] pb-2 px-4 flex-row">
+      <View className="pt-[130px] pb-2 px-4 flex-row">
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <FilterButton title="All" status="ALL" />
           <FilterButton title="Pending" status="PENDING" />
@@ -77,29 +124,13 @@ export default function AdminSubmissionsList() {
         </ScrollView>
       </View>
       <FlatList
-        data={filteredSubmissions}
-        keyExtractor={(item: any) => item.id}
-        contentContainerStyle={{ padding: 16, paddingBottom: 140, paddingTop: 90 }}
+        data={groupedSubmissions}
+        keyExtractor={(item: any) => item.task.id}
+        contentContainerStyle={{ padding: 16, paddingBottom: 140 }}
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
         ListEmptyComponent={<EmptyState title="No submissions found" message="No one has submitted tasks yet." />}
         renderItem={({ item }: { item: any }) => (
-          <SubmissionCard 
-            submission={item} 
-            isAdmin={true}
-            onApprove={() => {
-              Alert.alert('Confirm Approve', 'Are you sure you want to approve this submission?', [
-                { text: 'Cancel', style: 'cancel' },
-                { text: 'Approve', style: 'default', onPress: () => approveMutation.mutate(item.id) }
-              ]);
-            }}
-            onReject={() => {
-              Alert.alert('Confirm Reject', 'Are you sure you want to reject this submission?', [
-                { text: 'Cancel', style: 'cancel' },
-                { text: 'Reject', style: 'destructive', onPress: () => rejectMutation.mutate(item.id) }
-              ]);
-            }}
-            onPress={() => router.push(`/(admin)/submissions/${item.id}`)}
-          />
+          <TaskCard item={item} />
         )}
       />
     </Background>

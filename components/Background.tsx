@@ -22,7 +22,7 @@ export default function Background({ children }: { children: React.ReactNode }) 
 
   useEffect(() => {
     let routeKey = 'default';
-    if (pathname.includes('chat')) routeKey = 'chat';
+    if (pathname.includes('chat') || pathname.includes('discussion')) routeKey = 'chat';
     else if (pathname.includes('tasks')) routeKey = 'tasks';
     else if (pathname.includes('submissions')) routeKey = 'submissions';
     else if (pathname.includes('attendance')) routeKey = 'attendance';

@@ -9,6 +9,8 @@ import DiscussionThread from '../../../components/DiscussionThread';
 import { useTabBackHandler } from '../../../hooks/useTabBackHandler';
 import { useColorScheme } from 'nativewind';
 import Background from '../../../components/Background';
+import GlassCard from '../../../components/GlassCard';
+import * as Haptics from 'expo-haptics';
 
 export default function SubmissionDetail() {
   const { submissionId } = useLocalSearchParams<{ submissionId: string }>();
@@ -53,9 +55,12 @@ export default function SubmissionDetail() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'APPROVED': return 'bg-green-100 text-green-800 border-green-200';
-      case 'REJECTED': return 'bg-red-100 text-red-800 border-red-200';
-      default: return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'APPROVED': 
+        return { view: 'bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800', text: 'text-zinc-900 dark:text-white' };
+      case 'REJECTED': 
+        return { view: 'bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800', text: 'text-zinc-500 dark:text-zinc-400' };
+      default: 
+        return { view: 'bg-black/5 dark:bg-white/10 border border-black/10 dark:border-white/20 backdrop-blur-md', text: 'text-zinc-900 dark:text-white' };
     }
   };
 
@@ -63,81 +68,73 @@ export default function SubmissionDetail() {
 
   return (
     <Background>
-      <ScrollView className="flex-1">
-      <Stack.Screen options={{ title: 'Review Submission' }} />
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 130 }} showsVerticalScrollIndicator={false}>
+      <Stack.Screen options={{ 
+        title: 'Review Submission',
+        headerLeft: () => (
+          <TouchableOpacity onPress={() => router.back()} className="mr-4 ml-1">
+            <MaterialIcons name="arrow-back" size={24} color={isDark ? '#fff' : '#000'} />
+          </TouchableOpacity>
+        )
+      }} />
       
-      <View className="p-5 pt-[130px]">
-        {/* Back Button */}
-        <TouchableOpacity 
-          onPress={() => router.replace('/(admin)/submissions')}
-          className="flex-row items-center mb-6 bg-zinc-100 dark:bg-zinc-900 self-start px-3 py-2 rounded-full border border-black dark:border-white"
-        >
-          <MaterialIcons name="arrow-back" size={18} color={iconColor} />
-          <Text className="ml-1.5 font-bold text-xs uppercase tracking-widest text-zinc-900 dark:text-white">Back to Projects</Text>
-        </TouchableOpacity>
-
-        {/* User Info */}
-        <View className="bg-white dark:bg-slate-800 p-6 rounded-[32px] shadow-soft mb-5 items-center">
-          <View className="w-16 h-16 bg-blue-100 dark:bg-slate-700 rounded-full items-center justify-center mb-3">
-            <Text className="text-blue-600 dark:text-blue-400 text-2xl font-bold">{submission.user?.name?.charAt(0).toUpperCase() || '?'}</Text>
+      <View className="p-5 pt-[130px]">        {/* User Info */}
+        <GlassCard className="p-6 mb-5 items-center">
+          <View className="w-16 h-16 bg-zinc-200 dark:bg-zinc-800 rounded-full items-center justify-center mb-3 border border-zinc-300 dark:border-zinc-700">
+            <Text className="text-zinc-700 dark:text-zinc-300 text-2xl font-bold">{submission.user?.name?.charAt(0).toUpperCase() || '?'}</Text>
           </View>
-          <Text className="text-xl font-bold text-gray-900 dark:text-white mb-1">{submission.user?.name}</Text>
-          <Text className="text-gray-500 dark:text-slate-400">{submission.user?.email}</Text>
-        </View>
+          <Text className="text-xl font-bold text-zinc-900 dark:text-white mb-1">{submission.user?.name}</Text>
+          <Text className="text-gray-500 dark:text-zinc-400">{submission.user?.email}</Text>
+        </GlassCard>
 
-        {/* Task Info */}
-        <View className="bg-white dark:bg-slate-800 p-6 rounded-[32px] shadow-soft mb-5">
-          <Text className="text-gray-500 dark:text-slate-400 font-bold uppercase tracking-widest text-xs mb-2 ml-1">Task</Text>
-          <Text className="text-2xl font-black text-gray-900 dark:text-white mb-2 leading-tight">{submission.task?.title}</Text>
-          <Text className="text-gray-600 dark:text-slate-300 leading-relaxed">{submission.task?.description}</Text>
-        </View>
 
         {/* Links */}
-        <View className="bg-white dark:bg-slate-800 p-6 rounded-[32px] shadow-soft mb-5">
-          <Text className="text-gray-500 dark:text-slate-400 font-bold uppercase text-xs mb-3">Links</Text>
+        <GlassCard className="p-6 mb-5">
+          <Text className="text-zinc-500 dark:text-zinc-400 font-bold uppercase text-xs mb-3">Links</Text>
           
           <TouchableOpacity 
-            className="flex-row items-center p-4 bg-[#f4f7fc] dark:bg-slate-700/50 rounded-full border-0 mb-4"
+            className="flex-row items-center p-4 bg-zinc-100 dark:bg-zinc-800/50 rounded-full border-0 mb-4"
             onPress={() => Linking.openURL(submission.githubLink)}
           >
-            <View className="bg-blue-500 p-1.5 rounded-full mr-3">
-              <MaterialIcons name="code" size={20} color="#ffffff" />
+            <View className="bg-zinc-200 dark:bg-zinc-700 p-1.5 rounded-full mr-3">
+              <MaterialIcons name="code" size={20} color={isDark ? '#ffffff' : '#000000'} />
             </View>
-            <Text className="text-gray-800 dark:text-slate-200 font-bold flex-1" numberOfLines={1}>{submission.githubLink}</Text>
+            <Text className="text-zinc-800 dark:text-zinc-200 font-bold flex-1" numberOfLines={1}>{submission.githubLink}</Text>
             <MaterialIcons name="open-in-new" size={20} color="#9ca3af" />
           </TouchableOpacity>
 
           <TouchableOpacity 
-            className="flex-row items-center p-4 bg-[#f4f7fc] dark:bg-slate-700/50 rounded-full border-0"
+            className="flex-row items-center p-4 bg-zinc-100 dark:bg-zinc-800/50 rounded-full border-0"
             onPress={() => Linking.openURL(submission.demoLink)}
           >
-            <View className="bg-green-500 p-1.5 rounded-full mr-3">
-              <MaterialIcons name="link" size={20} color="#ffffff" />
+            <View className="bg-zinc-200 dark:bg-zinc-700 p-1.5 rounded-full mr-3">
+              <MaterialIcons name="link" size={20} color={isDark ? '#ffffff' : '#000000'} />
             </View>
-            <Text className="text-blue-600 dark:text-blue-400 font-bold flex-1" numberOfLines={1}>{submission.demoLink}</Text>
+            <Text className="text-zinc-800 dark:text-zinc-200 font-bold flex-1" numberOfLines={1}>{submission.demoLink}</Text>
             <MaterialIcons name="open-in-new" size={20} color="#9ca3af" />
           </TouchableOpacity>
-        </View>
+        </GlassCard>
 
         {/* Remarks */}
         {submission.remarks && (
-          <View className="bg-white dark:bg-slate-800 p-6 rounded-[32px] shadow-soft mb-5">
-            <Text className="text-gray-500 dark:text-slate-400 font-bold uppercase tracking-widest text-xs mb-2 ml-1">Remarks</Text>
-            <Text className="text-gray-700 dark:text-slate-300 italic">"{submission.remarks}"</Text>
-          </View>
+          <GlassCard className="p-6 mb-5">
+            <Text className="text-zinc-500 dark:text-zinc-400 font-bold uppercase tracking-widest text-xs mb-2 ml-1">Remarks</Text>
+            <Text className="text-zinc-700 dark:text-zinc-300 italic">"{submission.remarks}"</Text>
+          </GlassCard>
         )}
 
+
         {/* Status & Actions */}
-        <View className="bg-white dark:bg-slate-800 p-6 rounded-[32px] shadow-soft mb-12 items-center">
-          <Text className="text-gray-500 dark:text-slate-400 font-bold uppercase tracking-widest text-xs mb-3">Current Status</Text>
-          <View className={`px-6 py-3 rounded-full border-0 mb-8 ${statusStyle.split(' ').slice(0, 3).join(' ')}`}>
-            <Text className={`text-sm font-black tracking-widest ${statusStyle.split(' ')[1]}`}>{submission.status}</Text>
+        <GlassCard className="p-6 mb-6 items-center">
+          <Text className="text-zinc-500 dark:text-zinc-400 font-bold uppercase tracking-widest text-xs mb-3">Current Status</Text>
+          <View className={`px-6 py-3 rounded-full mb-8 ${statusStyle.view}`}>
+            <Text className={`text-sm font-black tracking-widest ${statusStyle.text}`}>{submission.status}</Text>
           </View>
 
           {submission.status === 'PENDING' && (
-            <View className="flex-row gap-4 w-full">
+            <View className="flex-row gap-3 w-full">
               <TouchableOpacity 
-                className="flex-1 bg-white dark:bg-slate-800 border-2 border-red-500 p-4 rounded-full items-center shadow-soft"
+                className="flex-1 bg-transparent border-2 border-dashed border-zinc-400 dark:border-zinc-600 py-3 rounded-xl items-center justify-center"
                 onPress={() => {
                   Alert.alert('Confirm', 'Reject this submission?', [
                     { text: 'Cancel', style: 'cancel' },
@@ -146,11 +143,11 @@ export default function SubmissionDetail() {
                 }}
                 disabled={rejectMutation.isPending || approveMutation.isPending}
               >
-                <Text className="text-red-500 font-black tracking-widest text-xs">REJECT</Text>
+                <Text className="text-zinc-700 dark:text-zinc-300 font-black tracking-widest text-[10px]">REJECT</Text>
               </TouchableOpacity>
-              
+
               <TouchableOpacity 
-                className="flex-1 bg-green-500 p-4 rounded-full items-center shadow-soft-glow"
+                className="flex-1 bg-black dark:bg-white py-3 rounded-xl items-center justify-center shadow-soft"
                 onPress={() => {
                   Alert.alert('Confirm', 'Approve this submission?', [
                     { text: 'Cancel', style: 'cancel' },
@@ -159,15 +156,22 @@ export default function SubmissionDetail() {
                 }}
                 disabled={rejectMutation.isPending || approveMutation.isPending}
               >
-                <Text className="text-zinc-900 dark:text-white font-black tracking-widest text-xs">APPROVE</Text>
+                <Text className="text-white dark:text-black font-black tracking-widest text-[10px]">APPROVE</Text>
               </TouchableOpacity>
             </View>
           )}
-        </View>
-        {/* Discussion Thread */}
-        <DiscussionThread submissionId={submissionId} />
+        </GlassCard>
 
-        <View className="h-20" />
+        <TouchableOpacity 
+          className="flex-row items-center justify-center bg-black dark:bg-white p-4 rounded-xl shadow-soft"
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            router.push(`/(admin)/discussion/${submission.id}` as any);
+          }}
+        >
+          <MaterialIcons name="forum" size={20} color={isDark ? '#000' : '#fff'} style={{ marginRight: 8 }} />
+          <Text className="text-white dark:text-black font-bold uppercase tracking-widest text-xs">Discussion Room</Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
     </Background>

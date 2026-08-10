@@ -4,6 +4,7 @@ import * as Linking from 'expo-linking';
 import { MaterialIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { useColorScheme } from 'nativewind';
+import { Image } from 'expo-image';
 
 interface SubmissionCardProps {
   submission: Submission;
@@ -27,6 +28,14 @@ export default function SubmissionCard({ submission, onPress, isAdmin, onApprove
 
   const statusStyle = getStatusStyle();
 
+  const openLink = (url: string) => {
+    if (!url) return;
+    const formattedUrl = url.startsWith('http://') || url.startsWith('https://') ? url : `https://${url}`;
+    Linking.openURL(formattedUrl).catch(err => console.error("An error occurred", err));
+  };
+
+  const isLate = submission.task?.deadline && new Date(submission.createdAt) > new Date(submission.task.deadline);
+
   return (
     <View className="rounded-xl border-[3px] border-black dark:border-white mb-4 overflow-hidden relative">
       <BlurView tint={isDark ? "dark" : "light"} intensity={40} style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? 'rgba(9, 9, 11, 0.1)' : 'rgba(255, 255, 255, 0.2)' }]} />
@@ -42,30 +51,50 @@ export default function SubmissionCard({ submission, onPress, isAdmin, onApprove
             <MaterialIcons name={statusStyle.icon as any} size={20} color="#FFFFFF" />
           </View>
           <View className="flex-1">
-            <Text className="text-lg font-bold font-sans text-zinc-900 dark:text-white" numberOfLines={1}>
-              {submission.task?.title || 'Unknown Task'}
-            </Text>
-            <Text className="text-xs font-mono text-zinc-500 dark:text-zinc-400 font-medium uppercase tracking-wider mt-0.5">
-              {submission.user?.name || 'Unknown User'}
-            </Text>
+            <View className="flex-row items-center">
+              <Text className="text-lg font-bold font-sans text-zinc-900 dark:text-white flex-1" numberOfLines={1}>
+                {submission.task?.title || 'Unknown Task'}
+              </Text>
+              {isLate && (
+                <View className="bg-red-600 dark:bg-red-500 px-1.5 py-0.5 rounded ml-2 shadow-sm">
+                  <Text className="text-white font-black text-[9px] tracking-widest uppercase">LATE</Text>
+                </View>
+              )}
+            </View>
+            <View className="flex-row items-center mt-0.5">
+              {submission.user?.avatarData ? (
+                <Image source={{ uri: submission.user.avatarData }} style={{ width: 16, height: 16, borderRadius: 8, marginRight: 4 }} />
+              ) : (
+                <MaterialIcons name="person" size={14} color="#71717a" style={{ marginRight: 4 }} />
+              )}
+              <Text className="text-xs font-mono text-zinc-500 dark:text-zinc-400 font-medium uppercase tracking-wider">
+                {submission.user?.name || 'Unknown User'}
+              </Text>
+            </View>
           </View>
           <MaterialIcons name="chevron-right" size={20} color="#A1A1AA" />
         </View>
 
-        <View className="flex-row mt-1 gap-2 mb-3">
+        <View className="flex-col mt-2 gap-2 mb-3">
           <TouchableOpacity 
-            className="flex-row items-center bg-white dark:bg-zinc-950 border border-zinc-500 px-3 py-1.5 rounded"
-            onPress={() => Linking.openURL(submission.githubLink)}
+            className="flex-row items-center bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 p-2.5 rounded-lg"
+            onPress={() => openLink(submission.githubLink)}
           >
-            <MaterialIcons name="code" size={16} color="#FFFFFF" />
-            <Text className="text-zinc-900 dark:text-white font-mono text-xs font-bold uppercase tracking-widest ml-1.5">GitHub</Text>
+            <MaterialIcons name="code" size={18} color={isDark ? '#FFFFFF' : '#000000'} style={{ marginRight: 10 }} />
+            <View className="flex-1">
+              <Text className="text-zinc-900 dark:text-white font-mono text-[10px] font-bold uppercase tracking-widest">GitHub</Text>
+              <Text className="text-blue-500 dark:text-blue-400 text-xs mt-0.5" numberOfLines={1}>{submission.githubLink}</Text>
+            </View>
           </TouchableOpacity>
           <TouchableOpacity 
-            className="flex-row items-center bg-white dark:bg-zinc-950 border border-zinc-500 px-3 py-1.5 rounded"
-            onPress={() => Linking.openURL(submission.demoLink)}
+            className="flex-row items-center bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 p-2.5 rounded-lg"
+            onPress={() => openLink(submission.demoLink)}
           >
-            <MaterialIcons name="link" size={16} color="#FFFFFF" />
-            <Text className="text-zinc-900 dark:text-white font-mono text-xs font-bold uppercase tracking-widest ml-1.5">Demo</Text>
+            <MaterialIcons name="link" size={18} color={isDark ? '#FFFFFF' : '#000000'} style={{ marginRight: 10 }} />
+            <View className="flex-1">
+              <Text className="text-zinc-900 dark:text-white font-mono text-[10px] font-bold uppercase tracking-widest">Demo</Text>
+              <Text className="text-blue-500 dark:text-blue-400 text-xs mt-0.5" numberOfLines={1}>{submission.demoLink}</Text>
+            </View>
           </TouchableOpacity>
         </View>
         
@@ -76,24 +105,7 @@ export default function SubmissionCard({ submission, onPress, isAdmin, onApprove
         )}
       </TouchableOpacity>
 
-      {isAdmin && submission.status === 'PENDING' && (
-        <View className="flex-row gap-3 mt-4 pt-4 border-t border-black dark:border-white">
-          <TouchableOpacity 
-            className="flex-1 flex-row justify-center items-center py-2 rounded-md border border-solid border-white"
-            onPress={onApprove}
-          >
-            <MaterialIcons name="check" size={14} color="#FFFFFF" className="mr-2" />
-            <Text className="text-zinc-900 dark:text-white font-mono tracking-widest text-[10px] uppercase">APPROVE</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            className="flex-1 flex-row justify-center items-center py-2 rounded-md border border-dashed border-zinc-500"
-            onPress={onReject}
-          >
-            <MaterialIcons name="close" size={14} color="#71717a" className="mr-2" />
-            <Text className="text-zinc-600 dark:text-zinc-400 font-mono tracking-widest text-[10px] uppercase">REJECT</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+
     </View>
   );
 }

@@ -31,6 +31,7 @@ export interface Submission {
   taskId: string;
   user?: User;
   task?: Task;
+  createdAt: string;
   updatedAt?: string;
 }
 

@@ -10,6 +10,7 @@ import { ThemeProvider, DarkTheme, DefaultTheme } from '@react-navigation/native
 import { StatusBar } from 'expo-status-bar';
 import { View } from "react-native";
 import CustomSplashScreen from '../components/CustomSplashScreen';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import "../global.css";
 
 // Prevent auto hide while we check auth
@@ -22,6 +23,15 @@ function RootLayoutNav() {
   const [splashFinished, setSplashFinished] = useState(false);
   const segments = useSegments();
   const router = useRouter();
+  const { setColorScheme } = useColorScheme();
+
+  useEffect(() => {
+    AsyncStorage.getItem('appTheme').then(theme => {
+      if (theme === 'light' || theme === 'dark') {
+        setColorScheme(theme);
+      }
+    }).catch(e => console.warn('Failed to load theme:', e));
+  }, []);
 
   useEffect(() => {
     loadFromStorage()

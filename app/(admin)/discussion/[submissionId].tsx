@@ -18,7 +18,7 @@ export default function DiscussionScreen() {
         title: 'Discussion', 
         headerShown: true,
         headerLeft: () => (
-          <TouchableOpacity onPress={() => router.navigate(`/(admin)/submissions/${submissionId}` as any)} className="mr-4 ml-1">
+          <TouchableOpacity onPress={() => router.replace(`/(admin)/submissions/${submissionId}` as any)} className="mr-4 ml-1">
             <MaterialIcons name="arrow-back" size={24} color={isDark ? '#fff' : '#000'} />
           </TouchableOpacity>
         )

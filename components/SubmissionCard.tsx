@@ -98,11 +98,11 @@ export default function SubmissionCard({ submission, onPress, isAdmin, onApprove
           </TouchableOpacity>
         </View>
         
-        {submission.remarks && (
+        {submission.remarks ? (
           <View className="bg-zinc-100 dark:bg-zinc-900 p-3 rounded-lg border border-[#333]">
             <Text className="text-zinc-500 dark:text-zinc-400 font-sans text-sm font-medium leading-relaxed">"{submission.remarks}"</Text>
           </View>
-        )}
+        ) : null}
       </TouchableOpacity>
 
 

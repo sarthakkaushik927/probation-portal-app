@@ -203,12 +203,12 @@ export default function UserTaskDetail() {
               </TouchableOpacity>
             </View>
             
-            {submission.remarks && (
+            {submission.remarks ? (
               <View>
                 <Text className="text-zinc-500 font-bold uppercase text-xs mb-1">Remarks</Text>
                 <Text className="text-zinc-300 italic">"{submission.remarks}"</Text>
               </View>
-            )}
+            ) : null}
           </GlassCard>
         ) : (
           <GlassCard className="p-6 mb-6">

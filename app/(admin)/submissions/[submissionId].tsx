@@ -116,12 +116,12 @@ export default function SubmissionDetail() {
         </GlassCard>
 
         {/* Remarks */}
-        {submission.remarks && (
+        {submission.remarks ? (
           <GlassCard className="p-6 mb-5">
             <Text className="text-zinc-500 dark:text-zinc-400 font-bold uppercase tracking-widest text-xs mb-2 ml-1">Remarks</Text>
             <Text className="text-zinc-700 dark:text-zinc-300 italic">"{submission.remarks}"</Text>
           </GlassCard>
-        )}
+        ) : null}
 
 
         {/* Status & Actions */}

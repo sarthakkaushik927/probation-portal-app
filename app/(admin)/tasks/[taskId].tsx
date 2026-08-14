@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView, Platform, ActivityIndicator } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getAdminTasks, updateTask } from '../../../services/api';
@@ -10,6 +10,8 @@ import Background from '../../../components/Background';
 import { useTabBackHandler } from '../../../hooks/useTabBackHandler';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useColorScheme } from 'nativewind';
+import * as DocumentPicker from 'expo-document-picker';
+import { uploadToCloudinary } from '../../../utils/cloudinary';
 
 export default function EditTask() {
   const { taskId } = useLocalSearchParams<{ taskId: string }>();
@@ -19,6 +21,8 @@ export default function EditTask() {
   const [deadline, setDeadline] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [pickerMode, setPickerMode] = useState<'date' | 'time'>('date');
+  const [attachment, setAttachment] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -41,12 +45,15 @@ export default function EditTask() {
         setDescription(task.description);
         setDomain(task.domain);
         setDeadline(new Date(task.deadline));
+        if (task.attachments && task.attachments.length > 0) {
+          setAttachment(task.attachments[0]);
+        }
       }
     }
   }, [tasks, taskId]);
 
   const updateMutation = useMutation({
-    mutationFn: () => updateTask(taskId, { title, description, domain, deadline: deadline.toISOString() }),
+    mutationFn: (data: { title: string, description: string, domain: string, deadline: string, attachments: string[] }) => updateTask(taskId, data),
     onSuccess: () => {
       Alert.alert('Success', 'Task updated successfully');
       queryClient.invalidateQueries({ queryKey: ['adminTasks'] });
@@ -62,7 +69,7 @@ export default function EditTask() {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
-    updateMutation.mutate();
+    updateMutation.mutate({ title, description, domain, deadline: deadline.toISOString(), attachments: attachment ? [attachment] : [] });
   };
 
   if (isLoading) return <LoadingSpinner />;
@@ -192,15 +199,51 @@ export default function EditTask() {
           )}
         </View>
 
+        <View className="mb-8">
+          <Text className="text-gray-600 dark:text-slate-400 font-bold uppercase text-xs tracking-wider mb-2 ml-1">Attachment</Text>
+          <TouchableOpacity 
+            className="w-full bg-white dark:bg-zinc-900 p-4 rounded-xl border-[3px] border-black dark:border-white items-center flex-row justify-center"
+            onPress={async () => {
+              try {
+                const result = await DocumentPicker.getDocumentAsync({ type: '*/*', copyToCacheDirectory: true });
+                if (!result.canceled && result.assets && result.assets.length > 0) {
+                  setIsUploading(true);
+                  const asset = result.assets[0];
+                  const uri = asset.uri;
+                  const type = asset.name.match(/\.(jpg|jpeg|png|gif)$/i) ? 'image' : 'raw';
+                  const url = await uploadToCloudinary(uri, type, asset.name, asset.mimeType);
+                  setAttachment(url);
+                }
+              } catch (e) {
+                Alert.alert('Upload Failed', 'Failed to upload attachment to Cloudinary');
+              } finally {
+                setIsUploading(false);
+              }
+            }}
+            disabled={isUploading}
+          >
+            {isUploading ? (
+              <ActivityIndicator size="small" color={iconColor} style={{ marginRight: 8 }} />
+            ) : attachment ? (
+              <MaterialIcons name="check-circle" size={20} color="#10b981" style={{ marginRight: 8 }} />
+            ) : (
+              <MaterialIcons name="attach-file" size={20} color={iconColor} style={{ marginRight: 8 }} />
+            )}
+            <Text className="text-zinc-900 dark:text-white font-mono font-bold uppercase tracking-widest">
+              {isUploading ? 'Uploading...' : attachment ? 'File Attached' : 'Attach File'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
         <TouchableOpacity 
-          className={`w-full py-4 px-6 rounded-xl items-center mb-12 border-[3px] border-black dark:border-white ${updateMutation.isPending ? 'bg-zinc-300 dark:bg-zinc-700' : 'bg-[#e0e7ff] dark:bg-blue-900'} flex-row justify-center`}
+          className={`w-full py-4 px-6 rounded-xl items-center mb-12 border-[3px] border-black dark:border-white ${updateMutation.isPending || isUploading ? 'bg-zinc-300 dark:bg-zinc-700' : 'bg-[#e0e7ff] dark:bg-blue-900'} flex-row justify-center`}
           onPress={handleUpdate}
-          disabled={updateMutation.isPending}
+          disabled={updateMutation.isPending || isUploading}
         >
           <Text className="text-zinc-900 dark:text-white font-mono text-lg font-bold uppercase tracking-widest mr-2">
             {updateMutation.isPending ? 'Updating...' : 'Save Changes'}
           </Text>
-          {!updateMutation.isPending && (
+          {!updateMutation.isPending && !isUploading && (
             <View className="bg-white/20 rounded-full p-1">
               <Text className="text-zinc-900 dark:text-white font-black text-xs">→</Text>
             </View>

@@ -33,7 +33,7 @@ export default function CreateTask() {
   useTabBackHandler('/(admin)/tasks');
 
   const createMutation = useMutation({
-    mutationFn: () => createTask({ title, description, domain, deadline: deadline.toISOString(), attachments: attachment ? [attachment] : [] }),
+    mutationFn: (data: { title: string, description: string, domain: string, deadline: string, attachments: string[] }) => createTask(data),
     onSuccess: () => {
       setToastMessage({ title: 'Success', message: 'Task created successfully', type: 'success' });
       queryClient.invalidateQueries({ queryKey: ['adminTasks'] });
@@ -52,7 +52,13 @@ export default function CreateTask() {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
-    createMutation.mutate();
+    createMutation.mutate({
+      title,
+      description,
+      domain,
+      deadline: deadline.toISOString(),
+      attachments: attachment ? [attachment] : []
+    });
   };
 
   return (

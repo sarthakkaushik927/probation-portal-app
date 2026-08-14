@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator, Platform } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createTask } from '../../../services/api';
@@ -19,6 +19,7 @@ export default function CreateTask() {
   const [domain, setDomain] = useState('COMMON');
   const [deadline, setDeadline] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [pickerMode, setPickerMode] = useState<'date' | 'time'>('date');
   const [toastMessage, setToastMessage] = useState<{title: string, message: string, type: 'success' | 'error'} | null>(null);
   const [attachment, setAttachment] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -135,22 +136,64 @@ export default function CreateTask() {
 
       <View className="mb-8">
         <Text className="text-gray-700 dark:text-slate-300 font-semibold mb-2 ml-1">Deadline</Text>
-        <TouchableOpacity 
-          className="w-full bg-white dark:bg-zinc-900 p-4 rounded-xl border-[3px] border-black dark:border-white items-center"
-          onPress={() => setShowDatePicker(true)}
-        >
-          <Text className="text-zinc-900 dark:text-white font-mono font-bold uppercase tracking-widest">{deadline.toLocaleDateString()} {deadline.toLocaleTimeString()}</Text>
-        </TouchableOpacity>
-        
-        {showDatePicker && (
-          <DateTimePicker
-            value={deadline}
-            mode="datetime"
-            onChange={(event, selectedDate) => {
-              setShowDatePicker(false);
-              if (selectedDate) setDeadline(selectedDate);
-            }}
-          />
+        {Platform.OS === 'web' ? (
+          <View className="w-full bg-white dark:bg-zinc-900 p-4 rounded-xl border-[3px] border-black dark:border-white items-center flex-row justify-center">
+            {/* @ts-ignore */}
+            <input
+              type="datetime-local"
+              value={new Date(deadline.getTime() - deadline.getTimezoneOffset() * 60000).toISOString().slice(0, 16)}
+              onChange={(e: any) => {
+                if (e.target.value) {
+                  setDeadline(new Date(e.target.value));
+                }
+              }}
+              style={{
+                backgroundColor: 'transparent',
+                border: 'none',
+                color: isDark ? '#ffffff' : '#000000',
+                fontFamily: 'monospace',
+                fontWeight: 'bold',
+                outline: 'none',
+                fontSize: 16,
+              }}
+            />
+          </View>
+        ) : (
+          <>
+            <TouchableOpacity 
+              className="w-full bg-white dark:bg-zinc-900 p-4 rounded-xl border-[3px] border-black dark:border-white items-center flex-row justify-center"
+              onPress={() => {
+                setPickerMode('date');
+                setShowDatePicker(true);
+              }}
+            >
+              <Text className="text-zinc-900 dark:text-white font-mono font-bold uppercase tracking-widest">{deadline.toLocaleDateString()} {deadline.toLocaleTimeString()}</Text>
+            </TouchableOpacity>
+            
+            {showDatePicker && (
+              <DateTimePicker
+                value={deadline}
+                mode={Platform.OS === 'ios' ? 'datetime' : pickerMode}
+                onChange={(event, selectedDate) => {
+                  if (Platform.OS === 'android') {
+                    if (event.type === 'set' && selectedDate) {
+                      setDeadline(selectedDate);
+                      if (pickerMode === 'date') {
+                        setPickerMode('time');
+                      } else {
+                        setShowDatePicker(false);
+                      }
+                    } else {
+                      setShowDatePicker(false);
+                    }
+                  } else {
+                    setShowDatePicker(false);
+                    if (selectedDate) setDeadline(selectedDate);
+                  }
+                }}
+              />
+            )}
+          </>
         )}
       </View>
 

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Modal, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useColorScheme } from 'nativewind';
-import GlassCard from './GlassCard';
+import { BlurView } from 'expo-blur';
 
 interface User {
   id: string;
@@ -93,7 +93,12 @@ export default function ExportUsersModal({ visible, onClose, users, initialSelec
   return (
     <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose}>
       <View className="flex-1 justify-end bg-black/50">
-        <GlassCard className="rounded-t-3xl h-[80%] border-t-2 border-black dark:border-white shadow-2xl overflow-hidden" intensity={100}>
+        <View className="rounded-t-3xl h-[85%] border-t-2 border-black dark:border-white shadow-2xl overflow-hidden">
+          <BlurView 
+            intensity={100} 
+            tint={isDark ? 'dark' : 'light'} 
+            style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? 'rgba(9, 9, 11, 0.85)' : 'rgba(255, 255, 255, 0.85)' }]} 
+          />
           <View className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex-row justify-between items-center">
             <Text className="text-xl font-bold font-sans text-zinc-900 dark:text-white">Export Users</Text>
             <TouchableOpacity onPress={onClose}>
@@ -104,7 +109,7 @@ export default function ExportUsersModal({ visible, onClose, users, initialSelec
           <ScrollView className="flex-1 p-4">
             {/* Fields Selection */}
             <Text className="text-sm font-bold text-zinc-500 uppercase tracking-widest mb-2">Include Fields</Text>
-            <GlassCard className="mb-6 p-2">
+            <View className="mb-6 rounded-xl border border-zinc-300 dark:border-zinc-700 p-3">
               <View className="flex-row flex-wrap">
                 {AVAILABLE_FIELDS.map(field => (
                   <TouchableOpacity 
@@ -121,7 +126,7 @@ export default function ExportUsersModal({ visible, onClose, users, initialSelec
                   </TouchableOpacity>
                 ))}
               </View>
-            </GlassCard>
+            </View>
 
             {/* Users Selection */}
             <View className="flex-row justify-between items-end mb-2">
@@ -133,14 +138,14 @@ export default function ExportUsersModal({ visible, onClose, users, initialSelec
               </TouchableOpacity>
             </View>
             
-            <GlassCard className="mb-10 p-2">
+            <View className="mb-10 rounded-xl border border-zinc-300 dark:border-zinc-700 overflow-hidden">
               {users?.map(user => (
                 <TouchableOpacity 
                   key={user.id} 
                   onPress={() => toggleUser(user.id)}
-                  className="flex-row items-center justify-between p-3 border-b border-zinc-200 dark:border-zinc-800 last:border-0"
+                  className="flex-row items-center justify-between p-4 border-b border-zinc-200 dark:border-zinc-800"
                 >
-                  <View>
+                  <View className="flex-1 mr-3">
                     <Text className="font-bold text-zinc-900 dark:text-white font-sans">{user.name}</Text>
                     <Text className="text-zinc-500 font-mono text-xs mt-1">{user.email}</Text>
                   </View>
@@ -151,10 +156,10 @@ export default function ExportUsersModal({ visible, onClose, users, initialSelec
                   />
                 </TouchableOpacity>
               ))}
-            </GlassCard>
+            </View>
           </ScrollView>
 
-          <View className="p-4 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 pb-8">
+          <View className="p-4 border-t border-zinc-200 dark:border-zinc-800 pb-8" style={{ backgroundColor: isDark ? 'rgba(9, 9, 11, 0.9)' : 'rgba(245, 245, 244, 0.9)' }}>
             <TouchableOpacity 
               className={`p-4 rounded-xl items-center border-2 border-black dark:border-white shadow-sm ${selectedUserIds.length === 0 || selectedFields.length === 0 ? 'bg-zinc-300 dark:bg-zinc-800 opacity-50' : 'bg-black dark:bg-white'}`}
               onPress={generateCSV}
@@ -165,7 +170,7 @@ export default function ExportUsersModal({ visible, onClose, users, initialSelec
               </Text>
             </TouchableOpacity>
           </View>
-        </GlassCard>
+        </View>
       </View>
     </Modal>
   );

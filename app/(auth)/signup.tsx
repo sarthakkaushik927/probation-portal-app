@@ -45,10 +45,8 @@ export default function SignupScreen() {
       return emailLower;
     },
     onSuccess: (emailLower) => {
-      showToast('Success', 'Account created! Please check your email.', 'success');
-      setTimeout(() => {
-        router.push(`/(auth)/verify?email=${encodeURIComponent(emailLower)}` as any);
-      }, 2000);
+      showToast('Success', 'Please check your email for OTP.', 'success');
+      router.push(`/(auth)/verify?email=${encodeURIComponent(emailLower)}` as any);
     },
     onError: (error: any) => {
       const msg = typeof error.response?.data?.error === 'string' ? error.response.data.error : 'Signup failed. Please try again.';

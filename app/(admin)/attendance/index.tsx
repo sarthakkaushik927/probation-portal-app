@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Alert, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Platform, ActivityIndicator } from 'react-native';
 import { Stack } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getAdminAttendanceUsers, saveAttendance } from '../../../services/api';
@@ -10,6 +10,8 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useColorScheme } from 'nativewind';
 import Background from '../../../components/Background';
+import GlassCard from '../../../components/GlassCard';
+import Animated, { FadeInUp, FadeOutUp } from 'react-native-reanimated';
 
 
 export default function AdminAttendance() {
@@ -22,17 +24,24 @@ export default function AdminAttendance() {
   
   const queryClient = useQueryClient();
 
+  const [toastMessage, setToastMessage] = useState<{ title: string; message: string; type: 'success' | 'error' } | null>(null);
+
+  const showToast = (title: string, message: string, type: 'success' | 'error') => {
+    setToastMessage({ title, message, type });
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
   const { data: users, isLoading } = useQuery({
     queryKey: ['adminAttendanceUsers', date.toISOString().split('T')[0]],
     queryFn: () => getAdminAttendanceUsers(date.toISOString()).then(res => res.data.data),
   });
 
-  // Initialize records from fetched data or default to PRESENT
+  // Initialize records from fetched data or default to ABSENT
   useEffect(() => {
     if (users) {
       setRecords(users.map((u: any) => ({ 
         userId: u.id, 
-        status: (u.attendance && u.attendance.length > 0) ? u.attendance[0].status : ('PRESENT' as AttendanceStatus)
+        status: (u.attendance && u.attendance.length > 0) ? u.attendance[0].status : ('ABSENT' as AttendanceStatus)
       })));
     }
   }, [users]);
@@ -44,11 +53,11 @@ export default function AdminAttendance() {
   const saveMutation = useMutation({
     mutationFn: () => saveAttendance(date.toISOString(), records),
     onSuccess: () => {
-      Alert.alert('Success', 'Attendance saved successfully');
-      queryClient.invalidateQueries({ queryKey: ['adminUser'] }); // Invalidate user details
+      showToast('Saved', 'Attendance saved successfully', 'success');
+      queryClient.invalidateQueries({ queryKey: ['adminUser'] });
     },
     onError: (error: any) => {
-      Alert.alert('Error', error.response?.data?.error || 'Failed to save attendance');
+      showToast('Error', error.response?.data?.error || 'Failed to save attendance', 'error');
     }
   });
 
@@ -57,6 +66,26 @@ export default function AdminAttendance() {
   return (
     <Background>
       <Stack.Screen options={{ title: 'Mark Attendance' }} />
+
+      {/* Toast Notification */}
+      {toastMessage && (
+        <Animated.View 
+          entering={FadeInUp.springify()} 
+          exiting={FadeOutUp.duration(300)}
+          className="absolute top-32 left-5 right-5 z-[999]"
+          style={{ elevation: 99 }}
+        >
+          <GlassCard className={`flex-row items-center p-4 border-2 shadow-sm ${toastMessage.type === 'success' ? 'border-green-500' : 'border-red-500'}`} intensity={90}>
+            <View className={`w-10 h-10 rounded-full items-center justify-center mr-3 border-2 ${toastMessage.type === 'success' ? 'border-green-500 bg-green-500/20' : 'border-red-500 bg-red-500/20'}`}>
+              <MaterialIcons name={toastMessage.type === 'success' ? 'check' : 'error-outline'} size={24} color={toastMessage.type === 'success' ? '#10b981' : '#ef4444'} />
+            </View>
+            <View className="flex-1">
+              <Text className="text-zinc-900 dark:text-white font-bold font-sans text-base">{toastMessage.title}</Text>
+              <Text className="text-zinc-500 dark:text-zinc-400 font-sans text-sm">{toastMessage.message}</Text>
+            </View>
+          </GlassCard>
+        </Animated.View>
+      )}
       
       <View style={{ paddingTop: 130 }}>
         <View className="p-4 bg-zinc-100 dark:bg-zinc-900 border-b-2 border-black dark:border-white z-10 flex-row items-center justify-between">
@@ -129,7 +158,7 @@ export default function AdminAttendance() {
           return (
             <AttendanceRow 
               user={item} 
-              status={currentRecord?.status || 'PRESENT'}
+              status={currentRecord?.status || 'ABSENT'}
               onStatusChange={handleStatusChange}
             />
           );

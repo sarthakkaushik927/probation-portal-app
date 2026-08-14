@@ -285,66 +285,68 @@ export default function ChatRoom({ channel = 'global-chat' }) {
         <FlyingEmoji key={emoji.id} id={emoji.id} type={emoji.type} onComplete={removeFlyingEmoji} />
       ))}
 
-      {/* Mentions Auto-complete */}
-      {mentionQuery !== null && filteredUsers.length > 0 && (
-        <View className="absolute bottom-20 left-4 right-4 max-h-48 rounded-xl overflow-hidden shadow-lg" style={{ backgroundColor: isDark ? '#18181b' : '#ffffff' }}>
-          <FlatList
-            data={filteredUsers.slice(0, 5)}
-            keyExtractor={item => item.id}
-            keyboardShouldPersistTaps="always"
-            renderItem={({ item }) => (
-              <TouchableOpacity 
-                className="p-3 border-b border-zinc-200 dark:border-zinc-800 flex-row items-center"
-                onPress={() => handleMentionSelect(item.name)}
-              >
-                <View className="w-8 h-8 rounded-full bg-zinc-200 dark:bg-zinc-800 mr-3 items-center justify-center">
-                  <Text className="text-zinc-500 font-bold">{item.name[0]}</Text>
-                </View>
-                <Text className="text-base text-zinc-900 dark:text-white font-bold">{item.name}</Text>
-              </TouchableOpacity>
-            )}
-          />
-        </View>
-      )}
+      {/* Input Area with Mentions - relative container */}
+      <View className="relative">
+        {/* Mentions Auto-complete */}
+        {mentionQuery !== null && filteredUsers.length > 0 && (
+          <View className="absolute bottom-full left-4 right-4 mb-2 max-h-48 rounded-xl overflow-hidden shadow-lg border border-zinc-200 dark:border-zinc-700" style={{ backgroundColor: isDark ? '#18181b' : '#ffffff' }}>
+            <FlatList
+              data={filteredUsers.slice(0, 5)}
+              keyExtractor={item => item.id}
+              keyboardShouldPersistTaps="always"
+              renderItem={({ item }) => (
+                <TouchableOpacity 
+                  className="p-3 border-b border-zinc-200 dark:border-zinc-800 flex-row items-center"
+                  onPress={() => handleMentionSelect(item.name)}
+                >
+                  <View className="w-8 h-8 rounded-full bg-zinc-200 dark:bg-zinc-800 mr-3 items-center justify-center">
+                    <Text className="text-zinc-500 font-bold">{item.name[0]}</Text>
+                  </View>
+                  <Text className="text-base text-zinc-900 dark:text-white font-bold">{item.name}</Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        )}
 
-      {/* Input Area */}
-      <View className="m-4 overflow-hidden rounded-full border-2 border-black dark:border-white">
-        <BlurView pointerEvents="none" intensity={80} tint={isDark ? "dark" : "light"} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: isDark ? 'rgba(9, 9, 11, 0.6)' : 'rgba(255, 255, 255, 0.6)' }} />
-        <View className="flex-row items-center p-2">
-        <TextInput
-          className="flex-1 h-12 px-4 text-base text-zinc-900 dark:text-white"
-          placeholder="Type a message... (Use @ to tag)"
-          placeholderTextColor={isDark ? "#71717a" : "#a1a1aa"}
-          value={message}
-          onChangeText={handleTextChange}
-          onSubmitEditing={handleSend}
-          multiline
-          maxLength={500}
-        />
-        <View className="flex-row items-center pr-2 gap-1">
-          <TouchableOpacity onPress={() => handleReact('heart')} className="p-2">
-            <MaterialIcons name="favorite-border" size={24} color={isDark ? "#fff" : "#000"} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={handleSend}
-            disabled={!message.trim()}
-            activeOpacity={0.8}
-            hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
-            accessibilityLabel="Send message"
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 20,
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: message.trim() ? '#2563eb' : (isDark ? '#374151' : '#e5e7eb'),
-              opacity: (!message.trim()) ? 0.6 : 1,
-            }}
-          >
-            <MaterialIcons name="send" size={20} color="#fff" />
-          </TouchableOpacity>
+        <View className="mx-4 mb-2 overflow-hidden rounded-full border-2 border-black dark:border-white">
+          <BlurView pointerEvents="none" intensity={80} tint={isDark ? "dark" : "light"} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: isDark ? 'rgba(9, 9, 11, 0.6)' : 'rgba(255, 255, 255, 0.6)' }} />
+          <View className="flex-row items-center p-2">
+          <TextInput
+            className="flex-1 h-12 px-4 text-base text-zinc-900 dark:text-white"
+            placeholder="Type a message... (Use @ to tag)"
+            placeholderTextColor={isDark ? "#71717a" : "#a1a1aa"}
+            value={message}
+            onChangeText={handleTextChange}
+            onSubmitEditing={handleSend}
+            multiline
+            maxLength={500}
+          />
+          <View className="flex-row items-center pr-2 gap-1">
+            <TouchableOpacity onPress={() => handleReact('heart')} className="p-2">
+              <MaterialIcons name="favorite-border" size={24} color={isDark ? "#fff" : "#000"} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleSend}
+              disabled={!message.trim()}
+              activeOpacity={0.8}
+              hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+              accessibilityLabel="Send message"
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: message.trim() ? '#2563eb' : (isDark ? '#374151' : '#e5e7eb'),
+                opacity: (!message.trim()) ? 0.6 : 1,
+              }}
+            >
+              <MaterialIcons name="send" size={20} color="#fff" />
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+        </View>
       </View>
     </KeyboardAvoidingView>
   );

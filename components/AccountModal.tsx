@@ -104,7 +104,7 @@ export default function AccountModal({ visible, onClose }: AccountModalProps) {
   return (
     <Modal visible={visible} transparent={true} animationType="none" onRequestClose={handleClose}>
       <Animated.View style={[{ flex: 1 }, { opacity: fadeAnim }]}>
-        <BlurView intensity={70} tint="dark" style={StyleSheet.absoluteFill} />
+        <BlurView intensity={120} tint="dark" style={StyleSheet.absoluteFill} />
         <Pressable style={StyleSheet.absoluteFill} onPress={handleClose} />
         
         <View className="flex-1 justify-center items-center px-4" pointerEvents="box-none">
@@ -116,7 +116,7 @@ export default function AccountModal({ visible, onClose }: AccountModalProps) {
             }}
             pointerEvents="box-none"
           >
-            <GlassCard className="rounded-2xl border-2 border-black dark:border-white p-6 relative">
+            <GlassCard className="rounded-2xl border-2 border-black dark:border-white p-6 relative" intensity={100} style={{ backgroundColor: isDark ? 'rgba(24, 24, 27, 0.95)' : 'rgba(255, 255, 255, 0.95)' }}>
               <TouchableOpacity 
                 onPress={handleClose}
                 className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full items-center justify-center bg-zinc-100 dark:bg-zinc-900 border border-black dark:border-white"

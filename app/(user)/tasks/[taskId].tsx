@@ -139,6 +139,25 @@ export default function UserTaskDetail() {
             {task.title}
           </Text>
           <Text className="text-gray-400 text-sm leading-relaxed">{task.description}</Text>
+
+          {task.attachments && task.attachments.length > 0 && (
+            <View className="mt-4 pt-4 border-t border-zinc-200 dark:border-zinc-800">
+              <Text className="text-zinc-500 font-bold uppercase tracking-widest text-[10px] mb-2">Attachments</Text>
+              {task.attachments.map((url: string, index: number) => (
+                <TouchableOpacity 
+                  key={index} 
+                  className="flex-row items-center bg-white dark:bg-zinc-950 px-3 py-2 rounded-lg border-2 border-black dark:border-white mb-2"
+                  onPress={() => Linking.openURL(url).catch(err => console.error("Couldn't open URL", err))}
+                >
+                  <MaterialIcons name="attach-file" size={18} color="#ef4444" className="mr-2" />
+                  <Text className="text-zinc-900 dark:text-white font-bold text-xs uppercase tracking-widest flex-1" numberOfLines={1}>
+                    View Attached Resource
+                  </Text>
+                  <MaterialIcons name="open-in-new" size={16} className="text-zinc-400" />
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
         </View>
 
         {/* Submission Section */}

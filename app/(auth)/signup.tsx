@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { useMutation } from '@tanstack/react-query';
-import { signup, sendOTP } from '../../services/api';
+import { signup } from '../../services/api';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useForm, Controller } from 'react-hook-form';
@@ -40,10 +40,8 @@ export default function SignupScreen() {
   const signupMutation = useMutation({
     mutationFn: async (data: SignupForm) => {
       const emailLower = data.email.trim().toLowerCase();
-      // First signup the user
+      // Signup stores pending data and sends OTP in one step
       await signup(data.name.trim(), emailLower, data.password, data.studentType, data.phoneNumber);
-      // Then send the OTP
-      await sendOTP(emailLower);
       return emailLower;
     },
     onSuccess: (emailLower) => {

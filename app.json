@@ -18,7 +18,7 @@
       "package": "com.nextgen.portal",
       "versionCode": 7,
       "googleServicesFile": "./google-services.json",
-      "softwareKeyboardLayoutMode": "adjustResize",
+      "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/new-icon.png",

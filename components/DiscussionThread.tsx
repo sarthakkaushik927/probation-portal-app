@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, FlatList, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getSubmissionComments, addSubmissionComment } from '../services/api';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -178,10 +178,12 @@ export default function DiscussionThread({ submissionId, fullScreen = false }: {
           </View>
         )
       ) : (
-        <View className={`${fullScreen ? 'flex-1 justify-center' : 'py-8'} items-center`}>
-          <MaterialIcons name="chat-bubble-outline" size={32} color="#a1a1aa" />
-          <Text className="text-zinc-400 mt-2 font-sans">No comments yet. Start the discussion!</Text>
-        </View>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View className={`${fullScreen ? 'flex-1 justify-center' : 'py-8'} items-center`}>
+            <MaterialIcons name="chat-bubble-outline" size={32} color="#a1a1aa" />
+            <Text className="text-zinc-400 mt-2 font-sans">No comments yet. Start the discussion!</Text>
+          </View>
+        </TouchableWithoutFeedback>
       )}
 
       {/* Input */}

@@ -59,7 +59,8 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
       'notifications', 'profile', 'users/[userId]', 
       'tasks/create', 'tasks/[taskId]', 
       'submissions/[submissionId]', 'submissions/create', 
-      'attendance/index'
+      'attendance/index', 'discussion/[submissionId]',
+      'submissions/task/[taskId]'
     ];
     if (hiddenRouteNames.includes(route.name)) return false;
 

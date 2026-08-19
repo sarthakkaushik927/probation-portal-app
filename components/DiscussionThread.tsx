@@ -146,9 +146,12 @@ export default function DiscussionThread({ submissionId, fullScreen = false }: {
   return (
     <View className={fullScreen ? "flex-1" : "mt-6 border-t-2 border-zinc-200 dark:border-zinc-800 pt-4"}>
       {!fullScreen && (
-        <Text className="text-lg font-bold font-sans text-zinc-900 dark:text-white mb-4">
-          <MaterialIcons name="forum" size={18} color={isDark ? '#fff' : '#000'} /> Discussion & Feedback
-        </Text>
+        <View className="flex-row items-center gap-2 mb-4">
+          <MaterialIcons name="forum" size={18} color={isDark ? '#fff' : '#000'} />
+          <Text className="text-lg font-bold font-sans text-zinc-900 dark:text-white">
+            Discussion & Feedback
+          </Text>
+        </View>
       )}
 
       {isLoading ? (
@@ -182,12 +185,12 @@ export default function DiscussionThread({ submissionId, fullScreen = false }: {
       )}
 
       {/* Input */}
-      <View className="rounded-3xl overflow-hidden border border-black/5 dark:border-white/10 shadow-sm mt-2 mb-[100px]">
+      <View className="rounded-3xl overflow-hidden border border-black/5 dark:border-white/10 shadow-sm mt-2">
         <BlurView 
           tint={isDark ? 'dark' : 'light'} 
           intensity={60} 
           style={{ backgroundColor: isDark ? 'rgba(24, 24, 27, 0.5)' : 'rgba(255, 255, 255, 0.6)' }}
-          className="flex-row items-center gap-2 px-4 py-2"
+          className="flex-row items-end gap-2 px-4 py-2"
         >
           <TextInput
             className="flex-1 text-zinc-900 dark:text-white font-sans text-sm py-2"
@@ -196,13 +199,14 @@ export default function DiscussionThread({ submissionId, fullScreen = false }: {
             value={message}
             onChangeText={setMessage}
             multiline
+            style={{ maxHeight: 120 }}
             editable={!addMutation.isPending}
           />
           <TouchableOpacity
             onPress={handleSend}
             disabled={addMutation.isPending || !message.trim()}
             hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
-            className={`w-10 h-10 rounded-full items-center justify-center ${message.trim() ? 'bg-black dark:bg-white' : 'bg-zinc-300 dark:bg-zinc-700/50'}`}
+            className={`w-10 h-10 rounded-full items-center justify-center mb-0.5 ${message.trim() ? 'bg-black dark:bg-white' : 'bg-zinc-300 dark:bg-zinc-700/50'}`}
           >
             {addMutation.isPending ? (
               <ActivityIndicator size="small" color={isDark ? '#000' : '#fff'} />

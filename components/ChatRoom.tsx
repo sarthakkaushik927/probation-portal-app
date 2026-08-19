@@ -262,12 +262,8 @@ export default function ChatRoom({ channel = 'global-chat' }) {
 
   const filteredUsers = directory?.filter((u: any) => u.name.toLowerCase().includes(mentionQuery || '')) || [];
 
-  return (
-    <KeyboardAvoidingView 
-      className="flex-1"
-      behavior="padding"
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 80}
-    >
+  const renderContent = () => (
+    <React.Fragment>
       <FlatList
         ref={flatListRef}
         data={history || []}
@@ -285,9 +281,8 @@ export default function ChatRoom({ channel = 'global-chat' }) {
         <FlyingEmoji key={emoji.id} id={emoji.id} type={emoji.type} onComplete={removeFlyingEmoji} />
       ))}
 
-      {/* Input Area with Mentions - relative container */}
+      {/* Input Area with Mentions */}
       <View className="relative">
-        {/* Mentions Auto-complete */}
         {mentionQuery !== null && filteredUsers.length > 0 && (
           <View className="absolute bottom-full left-4 right-4 mb-2 max-h-48 rounded-xl overflow-hidden shadow-lg border border-zinc-200 dark:border-zinc-700" style={{ backgroundColor: isDark ? '#18181b' : '#ffffff' }}>
             <FlatList
@@ -312,42 +307,61 @@ export default function ChatRoom({ channel = 'global-chat' }) {
         <View className="mx-4 mb-2 overflow-hidden rounded-full border-2 border-black dark:border-white">
           <BlurView pointerEvents="none" intensity={80} tint={isDark ? "dark" : "light"} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: isDark ? 'rgba(9, 9, 11, 0.6)' : 'rgba(255, 255, 255, 0.6)' }} />
           <View className="flex-row items-center p-2">
-          <TextInput
-            className="flex-1 h-12 px-4 text-base text-zinc-900 dark:text-white"
-            placeholder="Type a message... (Use @ to tag)"
-            placeholderTextColor={isDark ? "#71717a" : "#a1a1aa"}
-            value={message}
-            onChangeText={handleTextChange}
-            onSubmitEditing={handleSend}
-            multiline
-            maxLength={500}
-          />
-          <View className="flex-row items-center pr-2 gap-1">
-            <TouchableOpacity onPress={() => handleReact('heart')} className="p-2">
-              <MaterialIcons name="favorite-border" size={24} color={isDark ? "#fff" : "#000"} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={handleSend}
-              disabled={!message.trim()}
-              activeOpacity={0.8}
-              hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
-              accessibilityLabel="Send message"
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 20,
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: message.trim() ? '#2563eb' : (isDark ? '#374151' : '#e5e7eb'),
-                opacity: (!message.trim()) ? 0.6 : 1,
-              }}
-            >
-              <MaterialIcons name="send" size={20} color="#fff" />
-            </TouchableOpacity>
+            <TextInput
+              className="flex-1 h-12 px-4 text-base text-zinc-900 dark:text-white"
+              placeholder="Type a message... (Use @ to tag)"
+              placeholderTextColor={isDark ? "#71717a" : "#a1a1aa"}
+              value={message}
+              onChangeText={handleTextChange}
+              onSubmitEditing={handleSend}
+              multiline
+              maxLength={500}
+            />
+            <View className="flex-row items-center pr-2 gap-1">
+              <TouchableOpacity onPress={() => handleReact('heart')} className="p-2">
+                <MaterialIcons name="favorite-border" size={24} color={isDark ? "#fff" : "#000"} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleSend}
+                disabled={!message.trim()}
+                activeOpacity={0.8}
+                hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+                accessibilityLabel="Send message"
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 20,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: message.trim() ? '#2563eb' : (isDark ? '#374151' : '#e5e7eb'),
+                  opacity: (!message.trim()) ? 0.6 : 1,
+                }}
+              >
+                <MaterialIcons name="send" size={20} color="#fff" />
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-        </View>
       </View>
-    </KeyboardAvoidingView>
+    </React.Fragment>
+  );
+
+  // On iOS: use KeyboardAvoidingView. On Android: adjustResize in app.json handles it natively.
+  if (Platform.OS === 'ios') {
+    return (
+      <KeyboardAvoidingView 
+        className="flex-1"
+        behavior="padding"
+        keyboardVerticalOffset={90}
+      >
+        {renderContent()}
+      </KeyboardAvoidingView>
+    );
+  }
+
+  return (
+    <View className="flex-1">
+      {renderContent()}
+    </View>
   );
 }

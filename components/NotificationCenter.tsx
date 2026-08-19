@@ -7,11 +7,35 @@ import { useColorScheme } from 'nativewind';
 import LoadingSpinner from './LoadingSpinner';
 import GlassCard from './GlassCard';
 import * as Haptics from 'expo-haptics';
+import { useRouter } from 'expo-router';
+import { useAuthStore } from '../store/auth';
 
 export default function NotificationCenter() {
   const queryClient = useQueryClient();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const router = useRouter();
+  const user = useAuthStore(s => s.user);
+  const isAdmin = user?.role === 'ADMIN';
+
+  const getNotificationRoute = (notification: any): string | null => {
+    const type = notification.type;
+    if (isAdmin) {
+      switch (type) {
+        case 'SUBMISSION_STATUS': return '/(admin)/submissions';
+        case 'TASK_ASSIGNED': return '/(admin)/tasks';
+        case 'ATTENDANCE': return '/(admin)/attendance';
+        default: return null;
+      }
+    } else {
+      switch (type) {
+        case 'SUBMISSION_STATUS': return '/(user)/submissions';
+        case 'TASK_ASSIGNED': return '/(user)/tasks';
+        case 'ATTENDANCE': return '/(user)/attendance';
+        default: return null;
+      }
+    }
+  };
 
   const { data: notifications, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['notifications'],
@@ -85,9 +109,15 @@ export default function NotificationCenter() {
 
   const unreadCount = notifications?.filter((n: any) => !n.isRead).length || 0;
 
-  const handleMarkRead = (id: string) => {
+  const handleNotificationTap = (item: any) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    markReadMutation.mutate(id);
+    if (!item.isRead) {
+      markReadMutation.mutate(item.id);
+    }
+    const route = getNotificationRoute(item);
+    if (route) {
+      router.push(route as any);
+    }
   };
 
   const handleDelete = (id: string) => {
@@ -137,10 +167,7 @@ export default function NotificationCenter() {
               <View className={`p-4 rounded-xl flex-row items-center justify-between ${item.isRead ? 'opacity-70' : ''}`}>
                 <TouchableOpacity 
                   className="flex-1 flex-row items-start"
-                  onPress={() => {
-                    if (!item.isRead) handleMarkRead(item.id);
-                  }}
-                  disabled={item.isRead || markReadMutation.isPending}
+                  onPress={() => handleNotificationTap(item)}
                 >
                   <View className={`w-12 h-12 rounded-full items-center justify-center mr-4 border-2 border-black/10 dark:border-white/10 ${item.isRead ? 'bg-zinc-200/50 dark:bg-zinc-800/50' : 'bg-zinc-200 dark:bg-zinc-800'}`}>
                     <MaterialIcons 

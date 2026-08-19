@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Platform, ActivityIndicator, TextInput } from 'react-native';
 import { Stack } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getAdminAttendanceUsers, saveAttendance } from '../../../services/api';
@@ -18,6 +18,7 @@ export default function AdminAttendance() {
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [records, setRecords] = useState<{ userId: string; status: AttendanceStatus }[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
   const iconColor = isDark ? '#ffffff' : '#000000';
@@ -45,6 +46,16 @@ export default function AdminAttendance() {
       })));
     }
   }, [users]);
+
+  const filteredUsers = users?.filter((u: any) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      (u.name && u.name.toLowerCase().includes(q)) ||
+      (u.email && u.email.toLowerCase().includes(q)) ||
+      (u.domain && u.domain.toLowerCase().includes(q))
+    );
+  });
 
   const handleStatusChange = (userId: string, status: AttendanceStatus) => {
     setRecords(prev => prev.map(r => r.userId === userId ? { ...r, status } : r));
@@ -114,6 +125,25 @@ export default function AdminAttendance() {
         </TouchableOpacity>
       </View>
 
+      {/* Search Bar */}
+      <View className="px-4 py-3 bg-zinc-50 dark:bg-zinc-950 border-b-2 border-black dark:border-white">
+        <View className="flex-row items-center bg-zinc-100 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 px-3 py-2">
+          <MaterialIcons name="search" size={20} color={isDark ? '#71717a' : '#a1a1aa'} />
+          <TextInput
+            className="flex-1 ml-2 text-zinc-900 dark:text-white text-sm"
+            placeholder="Search by name, email, domain..."
+            placeholderTextColor="#a1a1aa"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery('')}>
+              <MaterialIcons name="close" size={20} color={isDark ? '#71717a' : '#a1a1aa'} />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+
       {Platform.OS === 'web' ? (
         <View className="px-4 py-2 border-b-2 border-black dark:border-white bg-zinc-50 dark:bg-zinc-900">
           <Text className="text-zinc-500 dark:text-zinc-400 text-xs font-bold uppercase mb-1">Select Date</Text>
@@ -150,7 +180,7 @@ export default function AdminAttendance() {
       )}
 
       <FlatList
-        data={users}
+        data={filteredUsers}
         keyExtractor={(item: any) => item.id}
         contentContainerStyle={{ padding: 16, paddingBottom: 140 }}
         renderItem={({ item }: { item: any }) => {

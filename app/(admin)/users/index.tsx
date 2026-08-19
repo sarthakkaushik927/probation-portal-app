@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, FlatList, RefreshControl, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, FlatList, RefreshControl, TouchableOpacity, Alert, TextInput } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getAdminUsers, deleteUser, exportUsersCSV } from '../../../services/api';
 import UserCard from '../../../components/UserCard';
@@ -24,10 +24,21 @@ export default function AdminUsersList() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [exportModalVisible, setExportModalVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const { data: users, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['adminUsers'],
     queryFn: () => getAdminUsers().then(res => res.data.data),
+  });
+
+  const filteredUsers = users?.filter((u: any) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      (u.name && u.name.toLowerCase().includes(q)) ||
+      (u.email && u.email.toLowerCase().includes(q)) ||
+      (u.domain && u.domain.toLowerCase().includes(q))
+    );
   });
 
   const deleteMutation = useMutation({
@@ -48,11 +59,11 @@ export default function AdminUsersList() {
   };
 
   const selectAll = () => {
-    if (!users) return;
-    if (selectedIds.length === users.length) {
+    if (!filteredUsers) return;
+    if (selectedIds.length === filteredUsers.length) {
       setSelectedIds([]);
     } else {
-      setSelectedIds(users.map((u: any) => u.id));
+      setSelectedIds(filteredUsers.map((u: any) => u.id));
     }
   };
 
@@ -78,8 +89,29 @@ export default function AdminUsersList() {
     <Background>
       <Stack.Screen options={{ title: 'All Users', headerShown: true }} />
       
+      {/* Search Bar */}
+      <View className="px-4 pt-[130px] pb-2">
+        <View className="flex-row items-center bg-zinc-100 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 px-3 py-2">
+          <MaterialIcons name="search" size={20} color={isDark ? '#71717a' : '#a1a1aa'} />
+          <TextInput
+            className="flex-1 ml-2 text-zinc-900 dark:text-white text-sm"
+            placeholder="Search by name, email, domain..."
+            placeholderTextColor="#a1a1aa"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery('')}>
+              <MaterialIcons name="close" size={18} color={isDark ? '#71717a' : '#a1a1aa'} />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+
       {/* Toolbar */}
-      <View className="flex-row items-center justify-between px-4 pt-[130px] pb-2">
+      <View className="flex-row items-center justify-between px-4 pb-2">
         <TouchableOpacity 
           onPress={() => { setIsSelectMode(!isSelectMode); setSelectedIds([]); }}
           className="flex-row items-center bg-zinc-100 dark:bg-zinc-900 px-3 py-2 rounded-lg border border-black dark:border-white"
@@ -96,9 +128,9 @@ export default function AdminUsersList() {
               onPress={selectAll}
               className="flex-row items-center bg-zinc-100 dark:bg-zinc-900 px-3 py-2 rounded-lg border border-black dark:border-white"
             >
-              <MaterialIcons name={selectedIds.length === (users?.length || 0) ? "deselect" : "select-all"} size={16} color={iconColor} />
+              <MaterialIcons name={selectedIds.length === (filteredUsers?.length || 0) ? "deselect" : "select-all"} size={16} color={iconColor} />
               <Text className="ml-1.5 text-xs font-bold text-zinc-900 dark:text-white uppercase tracking-widest">
-                {selectedIds.length === (users?.length || 0) ? 'None' : 'All'}
+                {selectedIds.length === (filteredUsers?.length || 0) ? 'None' : 'All'}
               </Text>
             </TouchableOpacity>
           )}
@@ -115,11 +147,11 @@ export default function AdminUsersList() {
       </View>
 
       <FlatList
-        data={users}
+        data={filteredUsers}
         keyExtractor={(item: any) => item.id}
         contentContainerStyle={{ padding: 16, paddingBottom: 140 }}
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
-        ListEmptyComponent={<EmptyState title="No users found" message="There are no users registered yet." />}
+        ListEmptyComponent={<EmptyState title="No users found" message={searchQuery ? "No users match your search." : "There are no users registered yet."} />}
         renderItem={({ item }: { item: any }) => (
           <View className="mb-3">
             {isSelectMode && (

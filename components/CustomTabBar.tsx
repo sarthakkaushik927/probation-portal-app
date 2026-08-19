@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { View, TouchableOpacity, StyleSheet, Animated, Dimensions } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, TouchableOpacity, StyleSheet, Animated, Dimensions, Keyboard } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -34,6 +34,16 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
   const insets = useSafeAreaInsets();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const showListener = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
+    const hideListener = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
+    return () => {
+      showListener.remove();
+      hideListener.remove();
+    };
+  }, []);
 
   // Theme Constants
   const borderColor = isDark ? '#ffffff' : '#000000';
@@ -81,6 +91,10 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
     }).start();
   }, [state.index, tabWidth, state.routes, visibleRoutes]);
 
+  if (isKeyboardVisible) {
+    return null;
+  }
+
   return (
     <View style={{
       position: 'absolute',
@@ -97,7 +111,7 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
     }}>
       <View
         style={{
-          height: 72, 
+          height: 60, 
           borderRadius: 100,
           borderWidth: 2,
           borderColor: borderColor,
@@ -120,10 +134,10 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
           }}
         >
           <View style={{ 
-            width: 52, 
-            height: 52, 
+            width: tabWidth - 16, 
+            height: 44, 
             backgroundColor: pillBgColor, 
-            borderRadius: 26,
+            borderRadius: 22,
           }} />
         </Animated.View>
 

@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function UserChatScreen() {
   const insets = useSafeAreaInsets();
-  const customTabBarHeight = Math.max(insets.bottom + 10, 24) + 72 + 20;
+  const customTabBarHeight = Math.max(insets.bottom + 10, 24) + 60 + 20;
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
   useEffect(() => {

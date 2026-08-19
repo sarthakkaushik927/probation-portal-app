@@ -30,7 +30,7 @@
         "EXPO_PUBLIC_PUSHER_KEY": "05b36ebd8cbd750f01b6",
         "EXPO_PUBLIC_PUSHER_CLUSTER": "ap2"
       },
-      "channel": "production"
+      "channel": "production" 
     }
   },
   "submit": {

@@ -346,22 +346,13 @@ export default function ChatRoom({ channel = 'global-chat' }) {
     </React.Fragment>
   );
 
-  // On iOS: use KeyboardAvoidingView. On Android: adjustResize in app.json handles it natively.
-  if (Platform.OS === 'ios') {
-    return (
-      <KeyboardAvoidingView 
-        className="flex-1"
-        behavior="padding"
-        keyboardVerticalOffset={90}
-      >
-        {renderContent()}
-      </KeyboardAvoidingView>
-    );
-  }
-
   return (
-    <View className="flex-1">
+    <KeyboardAvoidingView 
+      className="flex-1"
+      behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 90}
+    >
       {renderContent()}
-    </View>
+    </KeyboardAvoidingView>
   );
 }

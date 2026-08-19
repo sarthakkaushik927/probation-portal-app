@@ -42,19 +42,13 @@ export default function DiscussionScreen() {
           </TouchableOpacity>
         )
       }} />
-      {Platform.OS === 'ios' ? (
-        <KeyboardAvoidingView 
-          style={{ flex: 1, paddingTop: 100, paddingBottom: customTabBarHeight }}
-          behavior="padding"
-          keyboardVerticalOffset={90}
-        >
-          {content}
-        </KeyboardAvoidingView>
-      ) : (
-        <View style={{ flex: 1, paddingTop: 100, paddingBottom: isKeyboardVisible ? 0 : customTabBarHeight }}>
-          {content}
-        </View>
-      )}
+      <KeyboardAvoidingView 
+        style={{ flex: 1, paddingTop: 100, paddingBottom: isKeyboardVisible && Platform.OS === 'android' ? 0 : customTabBarHeight }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 90}
+      >
+        {content}
+      </KeyboardAvoidingView>
     </Background>
   );
 }

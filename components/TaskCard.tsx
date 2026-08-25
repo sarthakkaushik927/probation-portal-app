@@ -27,7 +27,7 @@ export default function TaskCard({ task, onPress }: TaskCardProps) {
       disabled={!onPress}
     >
       <BlurView tint={isDark ? "dark" : "light"} intensity={40} style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? 'rgba(9, 9, 11, 0.1)' : 'rgba(255, 255, 255, 0.2)' }]} />
-      <View className="p-4 relative z-10 w-full h-full">
+      <View className="p-4 relative z-10 w-full">
         <View className="flex-row items-center justify-between mb-3">
           <View className="flex-1">
             <Text className="text-lg font-bold font-sans text-zinc-900 dark:text-white" numberOfLines={1}>

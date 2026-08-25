@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Alert, Platform } from 'react-native';
 import { useLocalSearchParams, Stack, useRouter } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getAdminSubmission, approveSubmission, rejectSubmission } from '../../../services/api';
@@ -94,7 +94,14 @@ export default function SubmissionDetail() {
           
           <TouchableOpacity 
             className="flex-row items-center p-4 bg-zinc-100 dark:bg-zinc-800/50 rounded-full border-0 mb-4"
-            onPress={() => Linking.openURL(submission.githubLink)}
+            onPress={() => {
+              const url = submission.githubLink.startsWith('http') ? submission.githubLink : `https://${submission.githubLink}`;
+              if (Platform.OS === 'web') {
+                window.open(url, '_blank');
+              } else {
+                Linking.openURL(url);
+              }
+            }}
           >
             <View className="bg-zinc-200 dark:bg-zinc-700 p-1.5 rounded-full mr-3">
               <MaterialIcons name="code" size={20} color={isDark ? '#ffffff' : '#000000'} />
@@ -105,7 +112,14 @@ export default function SubmissionDetail() {
 
           <TouchableOpacity 
             className="flex-row items-center p-4 bg-zinc-100 dark:bg-zinc-800/50 rounded-full border-0"
-            onPress={() => Linking.openURL(submission.demoLink)}
+            onPress={() => {
+              const url = submission.demoLink.startsWith('http') ? submission.demoLink : `https://${submission.demoLink}`;
+              if (Platform.OS === 'web') {
+                window.open(url, '_blank');
+              } else {
+                Linking.openURL(url);
+              }
+            }}
           >
             <View className="bg-zinc-200 dark:bg-zinc-700 p-1.5 rounded-full mr-3">
               <MaterialIcons name="link" size={20} color={isDark ? '#ffffff' : '#000000'} />

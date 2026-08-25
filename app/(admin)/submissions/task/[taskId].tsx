@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { View, Text, FlatList, RefreshControl, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, FlatList, RefreshControl, TouchableOpacity, ScrollView, TextInput, Platform } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { getAdminSubmissions } from '../../../../services/api';
 import SubmissionCard from '../../../../components/SubmissionCard';
@@ -15,6 +15,7 @@ export default function TaskSubmissionsList() {
   const { taskId } = useLocalSearchParams();
   const { colorScheme } = useColorScheme();
   const [filter, setFilter] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED'>('ALL');
+  const [searchQuery, setSearchQuery] = useState('');
   
   const { data: allSubmissions, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['adminSubmissions'],
@@ -27,9 +28,15 @@ export default function TaskSubmissionsList() {
   const taskTitle = taskSubmissions.length > 0 ? taskSubmissions[0].task?.title : 'Task Submissions';
 
   const filteredSubmissions = useMemo(() => {
-    if (filter === 'ALL') return taskSubmissions;
-    return taskSubmissions.filter((s: any) => s.status === filter);
-  }, [taskSubmissions, filter]);
+    let result = taskSubmissions;
+    if (filter !== 'ALL') {
+      result = result.filter((s: any) => s.status === filter);
+    }
+    if (searchQuery.trim() !== '') {
+      result = result.filter((s: any) => s.user?.name?.toLowerCase().includes(searchQuery.toLowerCase()));
+    }
+    return result;
+  }, [taskSubmissions, filter, searchQuery]);
 
   const FilterButton = ({ title, status }: { title: string, status: typeof filter }) => (
     <TouchableOpacity
@@ -60,6 +67,13 @@ export default function TaskSubmissionsList() {
           <FilterButton title="Approved" status="APPROVED" />
           <FilterButton title="Rejected" status="REJECTED" />
         </ScrollView>
+        <TextInput
+          placeholder="Search by user name..."
+          placeholderTextColor="#9ca3af"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          className="bg-white/50 dark:bg-zinc-900/50 border border-zinc-300 dark:border-zinc-700 px-4 py-3 rounded-xl text-zinc-900 dark:text-white font-mono text-sm mb-2"
+        />
       </View>
       <FlatList
         data={filteredSubmissions}

@@ -43,8 +43,21 @@ export default function UserDetail() {
 
   const updateDomainMutation = useMutation({
     mutationFn: (domain: string) => updateUserDomain(userId, domain === 'UNASSIGNED' ? null : domain),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       Alert.alert('Success', 'Domain updated successfully');
+      
+      // Optimistically update cache to make UI feel instant
+      queryClient.setQueryData(['adminUser', userId], (oldData: any) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          user: {
+            ...oldData.user,
+            domain: variables === 'UNASSIGNED' ? null : variables
+          }
+        };
+      });
+
       queryClient.invalidateQueries({ queryKey: ['adminUser', userId] });
       queryClient.invalidateQueries({ queryKey: ['adminUsers'] });
     },

@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Platform, TouchableOpacity } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 import { useColorScheme } from 'nativewind';
 import { usePathname } from 'expo-router';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
@@ -45,6 +46,15 @@ export default function Background({ children }: { children: React.ReactNode }) 
       <Animated.View className="absolute top-0 right-0 w-96 h-96 rounded-full -mt-20 -mr-20 blur-[70px]" style={[topStyle, { filter: isDark ? 'blur(70px)' : 'blur(60px)' } as any]} />
       <Animated.View className="absolute bottom-0 left-0 w-96 h-96 rounded-full -mb-20 -ml-20 blur-[70px]" style={[bottomStyle, { filter: isDark ? 'blur(70px)' : 'blur(60px)' } as any]} />
       {children}
+      {Platform.OS === 'web' && (
+        <TouchableOpacity 
+          className="absolute bottom-6 left-6 w-12 h-12 bg-black dark:bg-white rounded-full items-center justify-center border-2 border-white dark:border-black shadow-lg z-50"
+          onPress={() => window.location.reload()}
+          style={{ elevation: 5 }}
+        >
+          <MaterialIcons name="refresh" size={24} color={isDark ? '#000000' : '#ffffff'} />
+        </TouchableOpacity>
+      )}
     </View>
   );
 }

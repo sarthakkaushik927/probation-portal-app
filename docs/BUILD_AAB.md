@@ -197,6 +197,7 @@ If you ever run `npx expo prebuild --clean`, Expo will overwrite `build.gradle` 
 | `screenOrientation restriction` | Changed to `"unspecified"` in AndroidManifest, `"default"` in app.json |
 | Build fails on EAS | Check `eas build --platform android --profile production --no-wait` for logs |
 | `clang++: error: clang frontend command failed due to signal` | **Windows Out-of-Memory.** The C++ compiler crashed. Open `android/gradle.properties` and change `org.gradle.jvmargs=-Xmx2048m` to `org.gradle.jvmargs=-Xmx8192m` to give it 8GB of RAM. |
+| `Execution failed for task ':app:mergeReleaseNativeLibs'` | **C++ File Collision.** Reanimated and Worklets both generate `libworklets.so`. Open `android/app/build.gradle` and add `pickFirst 'lib/**/libworklets.so'` inside the `packagingOptions` block. |
 | `Filename longer than 260 characters` | **Windows Only limit.** See the Robocopy workaround script below! |
 
 ### 🛠️ The "All-in-One" Windows Path Limit Fix (Robocopy Script)

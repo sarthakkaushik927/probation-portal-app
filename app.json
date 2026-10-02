@@ -2,8 +2,8 @@
   "expo": {
     "name": "CCC_Probation",
     "slug": "probation-portal",
-    "version": "1.4.3",
-    "orientation": "portrait",
+    "version": "1.5.0",
+    "orientation": "default",
     "icon": "./assets/images/new-icon.png",
     "scheme": "probationportal",
     "userInterfaceStyle": "light",
@@ -16,7 +16,7 @@
     },
     "android": {
       "package": "com.nextgen.portal",
-      "versionCode": 7,
+      "versionCode": 8,
       "googleServicesFile": "./google-services.json",
       "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {

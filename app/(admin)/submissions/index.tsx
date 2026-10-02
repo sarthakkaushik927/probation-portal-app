@@ -11,7 +11,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import GlassCard from '../../../components/GlassCard';
 import { useColorScheme } from 'nativewind';
 
-const TaskCard = ({ item }: { item: any }) => {
+const TaskCard = ({ item, filter }: { item: any, filter: string }) => {
   const router = useRouter();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -19,7 +19,7 @@ const TaskCard = ({ item }: { item: any }) => {
   return (
     <TouchableOpacity 
       className="mb-4"
-      onPress={() => router.push(`/(admin)/submissions/task/${item.task.id}` as any)}
+      onPress={() => router.push({ pathname: `/(admin)/submissions/task/${item.task.id}`, params: { initialFilter: filter } } as any)}
       activeOpacity={0.7}
     >
       <GlassCard className="p-1">
@@ -70,20 +70,16 @@ export default function AdminSubmissionsList() {
 
   if (isLoading) return <LoadingSpinner />;
 
-  const filteredSubmissions = useMemo(() => {
-    if (!submissions) return [];
-    if (filter === 'ALL') return submissions;
-    return submissions.filter((s: any) => s.status === filter);
-  }, [submissions, filter]);
-
   const groupedSubmissions = useMemo(() => {
-    if (!filteredSubmissions) return [];
+    if (!submissions) return [];
     
     const groups: Record<string, { task: any; submissions: any[] }> = {};
     
-    filteredSubmissions.forEach((sub: any) => {
+    submissions.forEach((sub: any) => {
       const taskId = sub.task?.id;
       if (!taskId) return;
+      // Apply filter at submission level
+      if (filter !== 'ALL' && sub.status !== filter) return;
       if (!groups[taskId]) {
         groups[taskId] = { task: sub.task, submissions: [] };
       }
@@ -91,7 +87,7 @@ export default function AdminSubmissionsList() {
     });
     
     return Object.values(groups);
-  }, [filteredSubmissions]);
+  }, [submissions, filter]);
 
   const FilterButton = ({ title, status }: { title: string, status: typeof filter }) => (
     <TouchableOpacity

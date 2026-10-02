@@ -55,9 +55,19 @@ export const updateProfile = (data: { name?: string; avatarData?: string }) =>
 export const changePassword = (currentPassword: string, newPassword: string) =>
   api.put('/api/user/change-password', { currentPassword, newPassword });
 
+// User Team Submissions
+export const getTeamSubmission = (taskId: string) => api.get(`/api/user/team-submissions/${taskId}`);
+export const addTeamLink = (taskId: string, name: string, url: string) =>
+  api.post(`/api/user/team-submissions/${taskId}/links`, { name, url });
+export const removeTeamLink = (taskId: string, index: number) =>
+  api.delete(`/api/user/team-submissions/${taskId}/links`, { data: { index } });
+export const addTeamAttachment = (taskId: string, url: string) =>
+  api.post(`/api/user/team-submissions/${taskId}/attachments`, { url });
+
 // Admin
 export const getAdminDashboard = () => api.get('/api/admin/dashboard');
 export const getAdminUsers = () => api.get('/api/admin/users');
+export const searchAdminUsers = (query: string) => api.get(`/api/admin/users/search?q=${encodeURIComponent(query)}`);
 export const getAdminUser = (userId: string) => api.get(`/api/admin/users/${userId}`);
 export const updateUserDomain = (userId: string, domain: string | null) =>
   api.patch(`/api/admin/users/${userId}/domain`, { domain });
@@ -66,12 +76,20 @@ export const getAdminTasks = () => api.get('/api/admin/tasks');
 export const createTask = (data: object) => api.post('/api/admin/tasks', data);
 export const updateTask = (taskId: string, data: object) =>
   api.patch(`/api/admin/tasks/${taskId}`, data);
+export const addTaskMember = (taskId: string, userId: string) =>
+  api.post(`/api/admin/tasks/${taskId}/members`, { userId });
+export const removeTaskMember = (taskId: string, userId: string) =>
+  api.delete(`/api/admin/tasks/${taskId}/members/${userId}`);
 export const getAdminSubmissions = () => api.get('/api/admin/submissions');
 export const getAdminSubmission = (id: string) => api.get(`/api/admin/submissions/${id}`);
 export const approveSubmission = (id: string) =>
   api.patch(`/api/admin/submissions/${id}/approve`);
 export const rejectSubmission = (id: string) =>
   api.patch(`/api/admin/submissions/${id}/reject`);
+export const approveTeamSubmission = (taskId: string) =>
+  api.patch(`/api/admin/team-submissions/${taskId}/approve`);
+export const rejectTeamSubmission = (taskId: string) =>
+  api.patch(`/api/admin/team-submissions/${taskId}/reject`);
 export const getAdminAttendanceUsers = (date?: string) => 
   api.get(`/api/admin/attendance${date ? `?date=${encodeURIComponent(date)}` : ''}`);
 export const saveAttendance = (date: string, records: object[]) =>

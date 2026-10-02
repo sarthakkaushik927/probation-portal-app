@@ -1,13 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, TouchableOpacity, StyleSheet, Animated, Dimensions, Keyboard } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Animated, Dimensions, Keyboard, Platform } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColorScheme } from 'nativewind';
 import * as Haptics from 'expo-haptics';
+import { emitTabRefresh } from '../hooks/useTabRefresh';
 
-// Helper component for animating the icon scale and position
-// Helper component for animating the icon scale and position
+const DOUBLE_TAP_DELAY = 400; // ms
+
 // Helper component for animating the icon scale and position
 const AnimatedTabIcon = ({ isFocused, options, color }: any) => {
   const scale = useRef(new Animated.Value(isFocused ? 1.25 : 1)).current;
@@ -35,6 +36,7 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+  const lastTapTime = useRef<Record<string, number>>({});
 
   useEffect(() => {
     const showListener = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
@@ -57,7 +59,7 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
     
     const hiddenRouteNames = [
       'notifications', 'profile', 'users/[userId]', 
-      'tasks/create', 'tasks/[taskId]', 
+      'tasks/create', 'tasks/create-team', 'tasks/[taskId]', 
       'submissions/[submissionId]', 'submissions/create', 
       'attendance/index', 'discussion/[submissionId]',
       'submissions/task/[taskId]'
@@ -155,7 +157,19 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
           }
 
           const onPress = () => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); // Slightly stronger haptic for a "liquid pop" feel
+            const now = Date.now();
+            const lastTap = lastTapTime.current[route.name] || 0;
+            const isDoubleTap = (now - lastTap) < DOUBLE_TAP_DELAY;
+            lastTapTime.current[route.name] = now;
+
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+            if (isFocused && isDoubleTap) {
+              // Double-tap on active tab: trigger refresh (works on all platforms including web)
+              emitTabRefresh(route.name);
+              return;
+            }
+
             const event = navigation.emit({
               type: 'tabPress',
               target: route.key,

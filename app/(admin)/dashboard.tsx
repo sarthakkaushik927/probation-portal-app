@@ -161,7 +161,11 @@ export default function AdminDashboard() {
               data={{
                 labels: ['Pending', 'Approved', 'Rejected'],
                 datasets: [{
-                  data: [data?.pendingReviews || 0, 5, 2],
+                  data: [
+                    submissions?.filter((s: any) => s.status === 'PENDING').length || 0,
+                    submissions?.filter((s: any) => s.status === 'APPROVED').length || 0,
+                    submissions?.filter((s: any) => s.status === 'REJECTED').length || 0,
+                  ],
                 }],
               }} 
             />

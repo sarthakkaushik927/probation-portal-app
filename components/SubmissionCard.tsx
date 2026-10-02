@@ -76,26 +76,48 @@ export default function SubmissionCard({ submission, onPress, isAdmin, onApprove
         </View>
 
         <View className="flex-col mt-2 gap-2 mb-3">
-          <TouchableOpacity 
-            className="flex-row items-center bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 p-2.5 rounded-lg"
-            onPress={() => openLink(submission.githubLink)}
-          >
-            <MaterialIcons name="code" size={18} color={isDark ? '#FFFFFF' : '#000000'} style={{ marginRight: 10 }} />
-            <View className="flex-1">
-              <Text className="text-zinc-900 dark:text-white font-mono text-[10px] font-bold uppercase tracking-widest">GitHub</Text>
-              <Text className="text-blue-500 dark:text-blue-400 text-xs mt-0.5" numberOfLines={1}>{submission.githubLink}</Text>
-            </View>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            className="flex-row items-center bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 p-2.5 rounded-lg"
-            onPress={() => openLink(submission.demoLink)}
-          >
-            <MaterialIcons name="link" size={18} color={isDark ? '#FFFFFF' : '#000000'} style={{ marginRight: 10 }} />
-            <View className="flex-1">
-              <Text className="text-zinc-900 dark:text-white font-mono text-[10px] font-bold uppercase tracking-widest">Demo</Text>
-              <Text className="text-blue-500 dark:text-blue-400 text-xs mt-0.5" numberOfLines={1}>{submission.demoLink}</Text>
-            </View>
-          </TouchableOpacity>
+          {submission.isTeam && submission.links ? (
+            submission.links.map((link, idx) => (
+              <TouchableOpacity 
+                key={idx}
+                className="flex-row items-center bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 p-2.5 rounded-lg"
+                onPress={() => openLink(link.url)}
+              >
+                <MaterialIcons name="link" size={18} color={isDark ? '#FFFFFF' : '#000000'} style={{ marginRight: 10 }} />
+                <View className="flex-1">
+                  <Text className="text-zinc-900 dark:text-white font-mono text-[10px] font-bold uppercase tracking-widest">{link.name}</Text>
+                  <Text className="text-blue-500 dark:text-blue-400 text-xs mt-0.5" numberOfLines={1}>{link.url}</Text>
+                </View>
+              </TouchableOpacity>
+            ))
+          ) : (
+            <>
+              {submission.githubLink ? (
+                <TouchableOpacity 
+                  className="flex-row items-center bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 p-2.5 rounded-lg"
+                  onPress={() => openLink(submission.githubLink)}
+                >
+                  <MaterialIcons name="code" size={18} color={isDark ? '#FFFFFF' : '#000000'} style={{ marginRight: 10 }} />
+                  <View className="flex-1">
+                    <Text className="text-zinc-900 dark:text-white font-mono text-[10px] font-bold uppercase tracking-widest">GitHub</Text>
+                    <Text className="text-blue-500 dark:text-blue-400 text-xs mt-0.5" numberOfLines={1}>{submission.githubLink}</Text>
+                  </View>
+                </TouchableOpacity>
+              ) : null}
+              {submission.demoLink ? (
+                <TouchableOpacity 
+                  className="flex-row items-center bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 p-2.5 rounded-lg"
+                  onPress={() => openLink(submission.demoLink)}
+                >
+                  <MaterialIcons name="link" size={18} color={isDark ? '#FFFFFF' : '#000000'} style={{ marginRight: 10 }} />
+                  <View className="flex-1">
+                    <Text className="text-zinc-900 dark:text-white font-mono text-[10px] font-bold uppercase tracking-widest">Demo</Text>
+                    <Text className="text-blue-500 dark:text-blue-400 text-xs mt-0.5" numberOfLines={1}>{submission.demoLink}</Text>
+                  </View>
+                </TouchableOpacity>
+              ) : null}
+            </>
+          )}
         </View>
         
         {submission.remarks ? (

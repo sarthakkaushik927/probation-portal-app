@@ -13,6 +13,7 @@ import DiscussionThread from '../../../components/DiscussionThread';
 import Animated, { FadeInUp, FadeOutUp } from 'react-native-reanimated';
 import * as Linking from 'expo-linking';
 import * as Haptics from 'expo-haptics';
+import TeamTaskSubmission from '../../../components/TeamTaskSubmission';
 
 export default function UserTaskDetail() {
   const { taskId } = useLocalSearchParams<{ taskId: string }>();
@@ -78,7 +79,7 @@ export default function UserTaskDetail() {
 
   if (isLoading || !result) return <LoadingSpinner />;
 
-  const { task, submission } = result;
+  const { task, submission, teamSubmission, members } = result;
   const formattedDate = new Date(task.deadline).toLocaleDateString();
 
   return (
@@ -130,7 +131,7 @@ export default function UserTaskDetail() {
             </View>
             <View className="bg-white dark:bg-zinc-950 px-3 py-1 rounded-full border-2 border-black dark:border-white">
               <Text className="text-zinc-900 dark:text-white text-xs font-bold uppercase tracking-widest">
-                {task.points} pts
+                {task.type === 'TEAM' ? 'TEAM TASK' : 'INDIVIDUAL'}
               </Text>
             </View>
           </View>
@@ -138,7 +139,12 @@ export default function UserTaskDetail() {
           <Text className="text-2xl font-bold text-zinc-900 dark:text-white mb-2">
             {task.title}
           </Text>
-          <Text className="text-gray-400 text-sm leading-relaxed">{task.description}</Text>
+          <Text className="text-gray-400 text-sm leading-relaxed mb-3">{task.description}</Text>
+          
+          <View className="flex-row items-center mt-2">
+            <MaterialIcons name="event" size={16} color="#ef4444" className="mr-1.5" />
+            <Text className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Deadline: {formattedDate}</Text>
+          </View>
 
           {task.attachments && task.attachments.length > 0 && (
             <View className="mt-4 pt-4 border-t border-zinc-200 dark:border-zinc-800">
@@ -161,7 +167,9 @@ export default function UserTaskDetail() {
         </View>
 
         {/* Submission Section */}
-        {submission && !isEditing ? (
+        {task.type === 'TEAM' && teamSubmission ? (
+          <TeamTaskSubmission taskId={taskId} teamSubmission={teamSubmission} members={members} setToastMessage={setToastMessage} />
+        ) : submission && !isEditing ? (
           <GlassCard className="p-6 mb-6">
             <View className="flex-row justify-between items-center mb-6">
               <Text className="text-xl font-bold text-zinc-900 dark:text-white">Your Submission</Text>

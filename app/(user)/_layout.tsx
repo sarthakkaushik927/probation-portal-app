@@ -69,7 +69,8 @@ export default function UserLayout() {
   useEffect(() => {
     if (!user?.id) return;
     const channel = `user-${user.id}`;
-    const unsub = subscribe(channel, 'mention', (data: any) => {
+
+    const unsubMention = subscribe(channel, 'mention', (data: any) => {
       try {
         const from = data?.from?.name || 'Someone';
         const text = data?.message?.content || '';
@@ -80,8 +81,36 @@ export default function UserLayout() {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
     });
 
+    const unsubTaskAssigned = subscribe(channel, 'task-assigned', (data: any) => {
+      showToast(`📋 New task assigned: "${data?.title || 'Untitled'}"`);
+      queryClient.invalidateQueries({ queryKey: ['userTasks'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    });
+
+    const unsubSubmissionStatus = subscribe(channel, 'submission-status', (data: any) => {
+      const status = data?.status === 'APPROVED' ? '✅ Approved' : '❌ Rejected';
+      showToast(`${status}: ${data?.taskTitle || ''}`);
+      queryClient.invalidateQueries({ queryKey: ['userSubmissions'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    });
+
+    const unsubAttendance = subscribe(channel, 'attendance-updated', (data: any) => {
+      showToast(`📅 Attendance marked: ${data?.status || ''}`);
+      queryClient.invalidateQueries({ queryKey: ['userAttendance'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    });
+
+    const unsubTeamLink = subscribe(channel, 'team-link-updated', (data: any) => {
+      showToast(`🔗 Team link updated`);
+      queryClient.invalidateQueries({ queryKey: ['userTask', data?.taskId] });
+    });
+
     return () => {
-      try { unsub(); } catch (e) {}
+      try { unsubMention(); } catch (e) {}
+      try { unsubTaskAssigned(); } catch (e) {}
+      try { unsubSubmissionStatus(); } catch (e) {}
+      try { unsubAttendance(); } catch (e) {}
+      try { unsubTeamLink(); } catch (e) {}
     };
   }, [user?.id, subscribe, queryClient]);
   // Notifications are handled via Pusher realtime (above) + react-query's 60s refetchInterval.

@@ -12,9 +12,9 @@ import { useColorScheme } from 'nativewind';
 
 export default function TaskSubmissionsList() {
   const router = useRouter();
-  const { taskId } = useLocalSearchParams();
+  const { taskId, initialFilter } = useLocalSearchParams();
   const { colorScheme } = useColorScheme();
-  const [filter, setFilter] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED'>('ALL');
+  const [filter, setFilter] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED'>((initialFilter as any) || 'ALL');
   const [searchQuery, setSearchQuery] = useState('');
   
   const { data: allSubmissions, isLoading, refetch, isRefetching } = useQuery({

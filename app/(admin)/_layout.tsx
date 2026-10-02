@@ -71,7 +71,8 @@ export default function AdminLayout() {
   useEffect(() => {
     if (!user?.id) return;
     const channel = `user-${user.id}`;
-    const unsub = subscribe(channel, 'mention', (data: any) => {
+
+    const unsubMention = subscribe(channel, 'mention', (data: any) => {
       try {
         const from = data?.from?.name || 'Someone';
         const text = data?.message?.content || '';
@@ -80,7 +81,34 @@ export default function AdminLayout() {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
     });
 
-    return () => { try { unsub(); } catch (e) {} };
+    const unsubTaskAssigned = subscribe(channel, 'task-assigned', (data: any) => {
+      showToast(`New task: "${data?.title || 'Untitled'}"`);
+      queryClient.invalidateQueries({ queryKey: ['adminTasks'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    });
+
+    const unsubSubmissionStatus = subscribe(channel, 'submission-status', (data: any) => {
+      const status = data?.status === 'APPROVED' ? '✅ Approved' : '❌ Rejected';
+      showToast(`Submission ${status}: ${data?.taskTitle || ''}`);
+      queryClient.invalidateQueries({ queryKey: ['adminSubmissions'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    });
+
+    const unsubAttendance = subscribe(channel, 'attendance-updated', (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    });
+
+    const unsubTeamLink = subscribe(channel, 'team-link-updated', (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ['userTask', data?.taskId] });
+    });
+
+    return () => {
+      try { unsubMention(); } catch (e) {}
+      try { unsubTaskAssigned(); } catch (e) {}
+      try { unsubSubmissionStatus(); } catch (e) {}
+      try { unsubAttendance(); } catch (e) {}
+      try { unsubTeamLink(); } catch (e) {}
+    };
   }, [user?.id, subscribe, queryClient]);
   // Notifications are handled via Pusher realtime (above) + react-query's 60s refetchInterval.
   // No aggressive polling needed.
@@ -180,6 +208,14 @@ export default function AdminLayout() {
           href: null,
           headerShown: true,
           headerTitle: 'Edit Task',
+        }}
+      />
+      <Tabs.Screen
+        name="tasks/create-team"
+        options={{
+          href: null,
+          headerShown: true,
+          headerTitle: 'Create Team Task',
         }}
       />
       <Tabs.Screen

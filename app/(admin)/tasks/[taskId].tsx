@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView, Platform, ActivityIndicator } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getAdminTasks, updateTask } from '../../../services/api';
+import { getAdminTasks, updateTask, addTaskMember, removeTaskMember } from '../../../services/api';
 import { DOMAINS } from '../../../constants/domains';
+import MemberSelector from '../../../components/MemberSelector';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import LoadingSpinner from '../../../components/LoadingSpinner';
 import Background from '../../../components/Background';
@@ -23,6 +24,8 @@ export default function EditTask() {
   const [pickerMode, setPickerMode] = useState<'date' | 'time'>('date');
   const [attachment, setAttachment] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [taskType, setTaskType] = useState('INDIVIDUAL');
+  const [selectedMembers, setSelectedMembers] = useState<any[]>([]);
   
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -44,6 +47,10 @@ export default function EditTask() {
         setTitle(task.title);
         setDescription(task.description);
         setDomain(task.domain);
+        setTaskType(task.type);
+        if (task.type === 'TEAM' && task.assignedUsers) {
+          setSelectedMembers(task.assignedUsers.map((a: any) => a.user));
+        }
         setDeadline(new Date(task.deadline));
         if (task.attachments && task.attachments.length > 0) {
           setAttachment(task.attachments[0]);
@@ -64,6 +71,18 @@ export default function EditTask() {
     }
   });
 
+  const addMemberMutation = useMutation({
+    mutationFn: (userId: string) => addTaskMember(taskId, userId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['adminTasks'] }),
+    onError: () => Alert.alert('Error', 'Failed to add member')
+  });
+
+  const removeMemberMutation = useMutation({
+    mutationFn: (userId: string) => removeTaskMember(taskId, userId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['adminTasks'] }),
+    onError: () => Alert.alert('Error', 'Failed to remove member')
+  });
+
   const handleUpdate = () => {
     if (!title || !description) {
       Alert.alert('Error', 'Please fill in all fields');
@@ -77,6 +96,7 @@ export default function EditTask() {
   return (
     <Background>
       <ScrollView 
+        keyboardShouldPersistTaps="handled"
         className="flex-1 px-5"
         contentContainerStyle={{ paddingTop: 130, paddingBottom: 100 }}
       >
@@ -115,26 +135,43 @@ export default function EditTask() {
           />
         </View>
 
-        <View className="mb-6">
-          <Text className="text-gray-600 dark:text-slate-400 font-bold uppercase text-xs tracking-wider mb-3 ml-1">Domain</Text>
-          <View className="flex-row flex-wrap gap-3">
-            {DOMAINS.map((d) => (
-              <TouchableOpacity
-                key={d}
-                onPress={() => setDomain(d)}
-                className={`px-4 py-2.5 rounded-xl border-[3px] border-black dark:border-white ${
-                  domain === d 
-                    ? 'bg-blue-500' 
-                    : 'bg-white dark:bg-zinc-900'
-                }`}
-              >
-                <Text className={`font-mono font-bold text-xs uppercase tracking-wider ${domain === d ? 'text-zinc-900 dark:text-white' : 'text-zinc-500 dark:text-zinc-400'}`}>
-                  {d}
-                </Text>
-              </TouchableOpacity>
-            ))}
+        {taskType === 'INDIVIDUAL' ? (
+          <View className="mb-6">
+            <Text className="text-gray-600 dark:text-slate-400 font-bold uppercase text-xs tracking-wider mb-3 ml-1">Domain</Text>
+            <View className="flex-row flex-wrap gap-3">
+              {DOMAINS.map((d) => (
+                <TouchableOpacity
+                  key={d}
+                  onPress={() => setDomain(d)}
+                  className={`px-4 py-2.5 rounded-xl border-[3px] border-black dark:border-white ${
+                    domain === d 
+                      ? 'bg-blue-500' 
+                      : 'bg-white dark:bg-zinc-900'
+                  }`}
+                >
+                  <Text className={`font-mono font-bold text-xs uppercase tracking-wider ${domain === d ? 'text-zinc-900 dark:text-white' : 'text-zinc-500 dark:text-zinc-400'}`}>
+                    {d}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
-        </View>
+        ) : (
+          <View className="mb-6 z-50" style={{ zIndex: 50, elevation: 50 }}>
+            <Text className="text-gray-600 dark:text-slate-400 font-bold uppercase text-xs tracking-wider mb-3 ml-1">Team Members</Text>
+            <MemberSelector
+              selectedMembers={selectedMembers}
+              onAdd={(u) => {
+                setSelectedMembers(prev => [...prev, u]);
+                addMemberMutation.mutate(u.id);
+              }}
+              onRemove={(uid) => {
+                setSelectedMembers(prev => prev.filter(m => m.id !== uid));
+                removeMemberMutation.mutate(uid);
+              }}
+            />
+          </View>
+        )}
 
         <View className="mb-8">
           <Text className="text-gray-600 dark:text-slate-400 font-bold uppercase text-xs tracking-wider mb-2 ml-1">Deadline</Text>

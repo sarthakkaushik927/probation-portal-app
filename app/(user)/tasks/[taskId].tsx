@@ -22,6 +22,13 @@ export default function UserTaskDetail() {
   const [remarks, setRemarks] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [toastMessage, setToastMessage] = useState<{title: string, message: string, type: 'success' | 'error'} | null>(null);
+
+  const handleSetToastMessage = (msg: any) => {
+    setToastMessage(msg);
+    if (msg) {
+      setTimeout(() => setToastMessage(null), 3500);
+    }
+  };
   
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -35,39 +42,34 @@ export default function UserTaskDetail() {
   const submitMutation = useMutation({
     mutationFn: () => createSubmission({ taskId, githubLink, demoLink, remarks }),
     onSuccess: () => {
-      setToastMessage({ title: 'Success', message: 'Task submitted successfully!', type: 'success' });
+      handleSetToastMessage({ title: 'Success', message: 'Task submitted successfully!', type: 'success' });
       queryClient.invalidateQueries({ queryKey: ['userTask', taskId] });
       queryClient.invalidateQueries({ queryKey: ['userSubmissions'] });
       queryClient.invalidateQueries({ queryKey: ['userTasks'] });
-      setTimeout(() => setToastMessage(null), 3000);
     },
     onError: (error: any) => {
       const msg = typeof error.response?.data?.error === 'string' ? error.response.data.error : 'Failed to submit task';
-      setToastMessage({ title: 'Error', message: msg, type: 'error' });
-      setTimeout(() => setToastMessage(null), 3000);
+      handleSetToastMessage({ title: 'Error', message: msg, type: 'error' });
     }
   });
 
   const updateMutation = useMutation({
     mutationFn: () => updateSubmission(taskId, { githubLink, demoLink, remarks }),
     onSuccess: () => {
-      setToastMessage({ title: 'Success', message: 'Submission updated successfully!', type: 'success' });
+      handleSetToastMessage({ title: 'Success', message: 'Submission updated successfully!', type: 'success' });
       setIsEditing(false);
       queryClient.invalidateQueries({ queryKey: ['userTask', taskId] });
       queryClient.invalidateQueries({ queryKey: ['userSubmissions'] });
-      setTimeout(() => setToastMessage(null), 3000);
     },
     onError: (error: any) => {
       const msg = typeof error.response?.data?.error === 'string' ? error.response.data.error : 'Failed to update submission';
-      setToastMessage({ title: 'Error', message: msg, type: 'error' });
-      setTimeout(() => setToastMessage(null), 3000);
+      handleSetToastMessage({ title: 'Error', message: msg, type: 'error' });
     }
   });
 
   const handleSubmit = () => {
     if (!githubLink || !demoLink) {
-      setToastMessage({ title: 'Error', message: 'Please provide both GitHub and Demo links', type: 'error' });
-      setTimeout(() => setToastMessage(null), 3000);
+      handleSetToastMessage({ title: 'Error', message: 'Please provide both GitHub and Demo links', type: 'error' });
       return;
     }
     if (isEditing) {
@@ -91,15 +93,25 @@ export default function UserTaskDetail() {
           className="absolute top-12 left-5 right-5 z-[999]"
           style={{ elevation: 99 }}
         >
-          <GlassCard className={`flex-row items-center p-4 border-2 shadow-sm ${toastMessage.type === 'success' ? 'border-green-500' : toastMessage.type === 'error' ? 'border-red-500' : 'border-black dark:border-white'}`} intensity={90}>
-            <View className={`w-10 h-10 rounded-full items-center justify-center mr-3 border-2 ${toastMessage.type === 'success' ? 'border-green-500 bg-green-500/20' : 'border-red-500 bg-red-500/20'}`}>
+          <View 
+            className={`flex-row items-center p-4 border-[3px] shadow-sm rounded-2xl bg-white dark:bg-zinc-900 ${toastMessage.type === 'success' ? 'border-green-500' : toastMessage.type === 'error' ? 'border-red-500' : 'border-black dark:border-white'}`}
+            onStartShouldSetResponder={() => true}
+            onResponderRelease={(e) => {
+              if (e.nativeEvent.locationY < 0 || e.nativeEvent.locationX < 0) {
+                setToastMessage(null);
+              } else {
+                setToastMessage(null);
+              }
+            }}
+          >
+            <View className={`w-10 h-10 rounded-full items-center justify-center mr-3 border-[3px] ${toastMessage.type === 'success' ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'}`}>
               <MaterialIcons name={toastMessage.type === 'success' ? 'check' : 'error-outline'} size={24} color={toastMessage.type === 'success' ? '#10b981' : '#ef4444'} />
             </View>
             <View className="flex-1">
               <Text className="text-zinc-900 dark:text-white font-bold font-sans text-base">{toastMessage.title}</Text>
               <Text className="text-zinc-500 dark:text-zinc-400 font-sans text-sm">{toastMessage.message}</Text>
             </View>
-          </GlassCard>
+          </View>
         </Animated.View>
       )}
       <KeyboardAvoidingView 
@@ -168,7 +180,7 @@ export default function UserTaskDetail() {
 
         {/* Submission Section */}
         {task.type === 'TEAM' && teamSubmission ? (
-          <TeamTaskSubmission taskId={taskId} teamSubmission={teamSubmission} members={members} setToastMessage={setToastMessage} />
+          <TeamTaskSubmission taskId={taskId} teamSubmission={teamSubmission} members={members} setToastMessage={handleSetToastMessage} />
         ) : submission && !isEditing ? (
           <GlassCard className="p-6 mb-6">
             <View className="flex-row justify-between items-center mb-6">

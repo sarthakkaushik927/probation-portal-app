@@ -3,6 +3,7 @@ import { View, Text, FlatList, RefreshControl, TouchableOpacity, Alert, TextInpu
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getAdminUsers, deleteUser, exportUsersCSV } from '../../../services/api';
 import UserCard from '../../../components/UserCard';
+import { useTabRefresh, shouldUseRefreshControl } from '../../../hooks/useTabRefresh';
 import LoadingSpinner from '../../../components/LoadingSpinner';
 import EmptyState from '../../../components/EmptyState';
 import { Stack, useRouter } from 'expo-router';
@@ -30,6 +31,8 @@ export default function AdminUsersList() {
     queryKey: ['adminUsers'],
     queryFn: () => getAdminUsers().then(res => res.data.data),
   });
+
+  useTabRefresh('users/index', () => refetch());
 
   const filteredUsers = users?.filter((u: any) => {
     if (!searchQuery.trim()) return true;
@@ -150,7 +153,7 @@ export default function AdminUsersList() {
         data={filteredUsers}
         keyExtractor={(item: any) => item.id}
         contentContainerStyle={{ padding: 16, paddingBottom: 140 }}
-        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
+        refreshControl={shouldUseRefreshControl() ? <RefreshControl refreshing={isRefetching} onRefresh={refetch} /> : undefined}
         ListEmptyComponent={<EmptyState title="No users found" message={searchQuery ? "No users match your search." : "There are no users registered yet."} />}
         renderItem={({ item }: { item: any }) => (
           <View className="mb-3">

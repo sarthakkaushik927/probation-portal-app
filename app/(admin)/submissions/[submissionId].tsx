@@ -1,7 +1,7 @@
 import { View, Text, ScrollView, TouchableOpacity, Alert, Platform } from 'react-native';
 import { useLocalSearchParams, Stack, useRouter } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getAdminSubmission, approveSubmission, rejectSubmission } from '../../../services/api';
+import { getAdminSubmission, approveSubmission, rejectSubmission, approveTeamSubmission, rejectTeamSubmission } from '../../../services/api';
 import LoadingSpinner from '../../../components/LoadingSpinner';
 import * as Linking from 'expo-linking';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -28,7 +28,7 @@ export default function SubmissionDetail() {
   });
 
   const approveMutation = useMutation({
-    mutationFn: () => approveSubmission(submissionId),
+    mutationFn: () => submission?.isTeam ? approveTeamSubmission(submission.taskId) : approveSubmission(submissionId),
     onSuccess: () => {
       Alert.alert('Success', 'Submission approved');
       queryClient.invalidateQueries({ queryKey: ['adminSubmissions'] });
@@ -40,7 +40,7 @@ export default function SubmissionDetail() {
   });
 
   const rejectMutation = useMutation({
-    mutationFn: () => rejectSubmission(submissionId),
+    mutationFn: () => submission?.isTeam ? rejectTeamSubmission(submission.taskId) : rejectSubmission(submissionId),
     onSuccess: () => {
       Alert.alert('Success', 'Submission rejected');
       queryClient.invalidateQueries({ queryKey: ['adminSubmissions'] });
@@ -81,10 +81,21 @@ export default function SubmissionDetail() {
       <View className="p-5 pt-[130px]">        {/* User Info */}
         <GlassCard className="p-6 mb-5 items-center">
           <View className="w-16 h-16 bg-zinc-200 dark:bg-zinc-800 rounded-full items-center justify-center mb-3 border border-zinc-300 dark:border-zinc-700">
-            <Text className="text-zinc-700 dark:text-zinc-300 text-2xl font-bold">{submission.user?.name?.charAt(0).toUpperCase() || '?'}</Text>
+            <Text className="text-zinc-700 dark:text-zinc-300 text-2xl font-bold">{submission.isTeam ? 'T' : submission.user?.name?.charAt(0).toUpperCase() || '?'}</Text>
           </View>
-          <Text className="text-xl font-bold text-zinc-900 dark:text-white mb-1">{submission.user?.name}</Text>
-          <Text className="text-gray-500 dark:text-zinc-400">{submission.user?.email}</Text>
+          <Text className="text-xl font-bold text-zinc-900 dark:text-white mb-1">{submission.isTeam ? `Team: ${submission.task?.teamName || 'Task'}` : submission.user?.name}</Text>
+          <Text className="text-gray-500 dark:text-zinc-400">{submission.isTeam ? `${submission.user?.members?.length || 0} Members` : submission.user?.email}</Text>
+          
+          {submission.isTeam && submission.user?.members && (
+            <View className="flex-row flex-wrap gap-2 mt-4 justify-center">
+              {submission.user.members.map((member: any) => (
+                <View key={member.id} className="bg-zinc-100 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-800 px-3 py-1.5 rounded-full flex-row items-center">
+                  <MaterialIcons name="person" size={14} color="#71717a" />
+                  <Text className="ml-1.5 text-zinc-900 dark:text-white font-mono text-xs">{member.name}</Text>
+                </View>
+              ))}
+            </View>
+          )}
         </GlassCard>
 
 
@@ -92,41 +103,64 @@ export default function SubmissionDetail() {
         <GlassCard className="p-6 mb-5">
           <Text className="text-zinc-500 dark:text-zinc-400 font-bold uppercase text-xs mb-3">Links</Text>
           
-          <TouchableOpacity 
-            className="flex-row items-center p-4 bg-zinc-100 dark:bg-zinc-800/50 rounded-full border-0 mb-4"
-            onPress={() => {
-              const url = submission.githubLink.startsWith('http') ? submission.githubLink : `https://${submission.githubLink}`;
-              if (Platform.OS === 'web') {
-                window.open(url, '_blank');
-              } else {
-                Linking.openURL(url);
-              }
-            }}
-          >
-            <View className="bg-zinc-200 dark:bg-zinc-700 p-1.5 rounded-full mr-3">
-              <MaterialIcons name="code" size={20} color={isDark ? '#ffffff' : '#000000'} />
-            </View>
-            <Text className="text-zinc-800 dark:text-zinc-200 font-bold flex-1" numberOfLines={1}>{submission.githubLink}</Text>
-            <MaterialIcons name="open-in-new" size={20} color="#9ca3af" />
-          </TouchableOpacity>
+          {submission.isTeam ? (
+            submission.links?.length > 0 ? (
+              submission.links.map((link: any, idx: number) => (
+                <TouchableOpacity 
+                  key={idx}
+                  className="flex-row items-center p-4 bg-zinc-100 dark:bg-zinc-800/50 rounded-full border-0 mb-4"
+                  onPress={() => {
+                    const url = link.url.startsWith('http') ? link.url : `https://${link.url}`;
+                    if (Platform.OS === 'web') window.open(url, '_blank');
+                    else Linking.openURL(url);
+                  }}
+                >
+                  <View className="bg-zinc-200 dark:bg-zinc-700 p-1.5 rounded-full mr-3">
+                    <MaterialIcons name="link" size={20} color={isDark ? '#ffffff' : '#000000'} />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-zinc-500 dark:text-zinc-400 font-bold text-[10px] uppercase">{link.name}</Text>
+                    <Text className="text-zinc-800 dark:text-zinc-200 font-bold" numberOfLines={1}>{link.url}</Text>
+                  </View>
+                  <MaterialIcons name="open-in-new" size={20} color="#9ca3af" />
+                </TouchableOpacity>
+              ))
+            ) : (
+              <Text className="text-zinc-400 italic mb-4 text-sm">No links added.</Text>
+            )
+          ) : (
+            <>
+              <TouchableOpacity 
+                className="flex-row items-center p-4 bg-zinc-100 dark:bg-zinc-800/50 rounded-full border-0 mb-4"
+                onPress={() => {
+                  const url = submission.githubLink.startsWith('http') ? submission.githubLink : `https://${submission.githubLink}`;
+                  if (Platform.OS === 'web') window.open(url, '_blank');
+                  else Linking.openURL(url);
+                }}
+              >
+                <View className="bg-zinc-200 dark:bg-zinc-700 p-1.5 rounded-full mr-3">
+                  <MaterialIcons name="code" size={20} color={isDark ? '#ffffff' : '#000000'} />
+                </View>
+                <Text className="text-zinc-800 dark:text-zinc-200 font-bold flex-1" numberOfLines={1}>{submission.githubLink}</Text>
+                <MaterialIcons name="open-in-new" size={20} color="#9ca3af" />
+              </TouchableOpacity>
 
-          <TouchableOpacity 
-            className="flex-row items-center p-4 bg-zinc-100 dark:bg-zinc-800/50 rounded-full border-0"
-            onPress={() => {
-              const url = submission.demoLink.startsWith('http') ? submission.demoLink : `https://${submission.demoLink}`;
-              if (Platform.OS === 'web') {
-                window.open(url, '_blank');
-              } else {
-                Linking.openURL(url);
-              }
-            }}
-          >
-            <View className="bg-zinc-200 dark:bg-zinc-700 p-1.5 rounded-full mr-3">
-              <MaterialIcons name="link" size={20} color={isDark ? '#ffffff' : '#000000'} />
-            </View>
-            <Text className="text-zinc-800 dark:text-zinc-200 font-bold flex-1" numberOfLines={1}>{submission.demoLink}</Text>
-            <MaterialIcons name="open-in-new" size={20} color="#9ca3af" />
-          </TouchableOpacity>
+              <TouchableOpacity 
+                className="flex-row items-center p-4 bg-zinc-100 dark:bg-zinc-800/50 rounded-full border-0"
+                onPress={() => {
+                  const url = submission.demoLink.startsWith('http') ? submission.demoLink : `https://${submission.demoLink}`;
+                  if (Platform.OS === 'web') window.open(url, '_blank');
+                  else Linking.openURL(url);
+                }}
+              >
+                <View className="bg-zinc-200 dark:bg-zinc-700 p-1.5 rounded-full mr-3">
+                  <MaterialIcons name="link" size={20} color={isDark ? '#ffffff' : '#000000'} />
+                </View>
+                <Text className="text-zinc-800 dark:text-zinc-200 font-bold flex-1" numberOfLines={1}>{submission.demoLink}</Text>
+                <MaterialIcons name="open-in-new" size={20} color="#9ca3af" />
+              </TouchableOpacity>
+            </>
+          )}
         </GlassCard>
 
         {/* Remarks */}

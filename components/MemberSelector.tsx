@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useColorScheme } from 'nativewind';
 import { Image } from 'expo-image';
@@ -101,14 +101,15 @@ export default function MemberSelector({ selectedMembers, onAdd, onRemove }: Mem
 
         {/* Suggestions Dropdown */}
         {suggestions.length > 0 && (
-          <View className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-zinc-900 border-2 border-black dark:border-white rounded-xl overflow-hidden z-50" style={{ elevation: 10 }}>
-            <FlatList
-              data={suggestions}
-              keyExtractor={item => item.id}
+          <View className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-zinc-900 border-2 border-black dark:border-white rounded-xl overflow-hidden z-50" style={{ elevation: 10, zIndex: 999 }}>
+            <ScrollView
               keyboardShouldPersistTaps="handled"
+              nestedScrollEnabled={true}
               style={{ maxHeight: 200 }}
-              renderItem={({ item }) => (
+            >
+              {suggestions.map((item) => (
                 <TouchableOpacity
+                  key={item.id}
                   className="flex-row items-center px-4 py-3 border-b border-zinc-200 dark:border-zinc-800"
                   onPress={() => handleSelect(item)}
                 >
@@ -138,8 +139,8 @@ export default function MemberSelector({ selectedMembers, onAdd, onRemove }: Mem
                   )}
                   <MaterialIcons name="add" size={20} color="#71717a" style={{ marginLeft: 8 }} />
                 </TouchableOpacity>
-              )}
-            />
+              ))}
+            </ScrollView>
           </View>
         )}
       </View>

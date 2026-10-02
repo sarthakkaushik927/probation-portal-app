@@ -12,6 +12,7 @@ import { useColorScheme } from 'nativewind';
 import { useState } from 'react';
 import Background from '../../components/Background';
 import { StatBarChart } from '../../components/ChartComponents';
+import { useTabRefresh, shouldUseRefreshControl } from '../../hooks/useTabRefresh';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { handleFileExport } from '../../utils/exportHelper';
@@ -35,6 +36,11 @@ export default function AdminDashboard() {
   const { data: submissions, isLoading: submissionsLoading, refetch: refetchSubmissions, isRefetching: isRefetchingSubs } = useQuery({
     queryKey: ['adminSubmissions'],
     queryFn: () => getAdminSubmissions().then(res => res.data.data),
+  });
+
+  useTabRefresh('dashboard', () => {
+    refetch();
+    refetchSubmissions();
   });
 
   const handleBroadcast = async () => {
@@ -79,7 +85,7 @@ export default function AdminDashboard() {
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 140, paddingTop: 130 }}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={isRefetching || isRefetchingSubs} onRefresh={handleRefresh} />}
+        refreshControl={shouldUseRefreshControl() ? <RefreshControl refreshing={isRefetching || isRefetchingSubs} onRefresh={handleRefresh} /> : undefined}
       >
         <Animated.View entering={FadeInDown.duration(500)}>
 

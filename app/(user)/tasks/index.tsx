@@ -8,6 +8,7 @@ import { Stack, useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useColorScheme } from 'nativewind';
 import Background from '../../../components/Background';
+import { useTabRefresh, shouldUseRefreshControl } from '../../../hooks/useTabRefresh';
 
 
 export default function UserTasksList() {
@@ -19,6 +20,8 @@ export default function UserTasksList() {
     queryFn: () => getUserTasks().then(res => res.data.data),
   });
 
+  useTabRefresh('tasks/index', () => refetch());
+
   if (isLoading) return <LoadingSpinner />;
 
   return (
@@ -27,7 +30,7 @@ export default function UserTasksList() {
         data={tasks}
         keyExtractor={(item: any) => item.id}
         contentContainerStyle={{ padding: 16, paddingBottom: 140, paddingTop: 130 }}
-        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
+        refreshControl={shouldUseRefreshControl() ? <RefreshControl refreshing={isRefetching} onRefresh={refetch} /> : undefined}
         ListEmptyComponent={<EmptyState title="No tasks available" message="You're all caught up!" />}
         renderItem={({ item }: { item: any }) => (
           <TaskCard 

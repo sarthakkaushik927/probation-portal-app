@@ -10,6 +10,7 @@ import { Stack } from 'expo-router';
 import { Calendar } from 'react-native-calendars';
 import { useColorScheme } from 'nativewind';
 import { useState } from 'react';
+import { useTabRefresh, shouldUseRefreshControl } from '../../../hooks/useTabRefresh';
 
 export default function UserAttendance() {
   const { colorScheme } = useColorScheme();
@@ -20,6 +21,8 @@ export default function UserAttendance() {
     queryKey: ['userAttendance'],
     queryFn: () => getUserAttendance().then(res => res.data.data),
   });
+
+  useTabRefresh('attendance/index', () => refetch());
 
   if (isLoading) {
     return (
@@ -70,7 +73,7 @@ export default function UserAttendance() {
       <ScrollView 
         className="flex-1"
       contentContainerStyle={{ paddingBottom: 140, paddingTop: 130 }}
-      refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
+      refreshControl={shouldUseRefreshControl() ? <RefreshControl refreshing={isRefetching} onRefresh={refetch} /> : undefined}
     >
       <Stack.Screen options={{ title: 'My Attendance', headerShown: false }} />
       

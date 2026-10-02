@@ -6,6 +6,7 @@ import LoadingSpinner from '../../../components/LoadingSpinner';
 import EmptyState from '../../../components/EmptyState';
 import { Stack, useRouter } from 'expo-router';
 import Background from '../../../components/Background';
+import { useTabRefresh, shouldUseRefreshControl } from '../../../hooks/useTabRefresh';
 
 
 export default function UserSubmissionsList() {
@@ -14,6 +15,8 @@ export default function UserSubmissionsList() {
     queryKey: ['userSubmissions'],
     queryFn: () => getUserSubmissions().then(res => res.data.data),
   });
+
+  useTabRefresh('submissions/index', () => refetch());
 
   if (isLoading) return <LoadingSpinner />;
 
@@ -24,7 +27,7 @@ export default function UserSubmissionsList() {
         data={submissions}
         keyExtractor={(item: any) => item.id}
         contentContainerStyle={{ padding: 16, paddingBottom: 140, paddingTop: 130 }}
-        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
+        refreshControl={shouldUseRefreshControl() ? <RefreshControl refreshing={isRefetching} onRefresh={refetch} /> : undefined}
         ListEmptyComponent={<EmptyState title="No submissions yet" message="You haven't submitted any tasks." />}
         renderItem={({ item }: { item: any }) => (
           <SubmissionCard 

@@ -13,6 +13,7 @@ import { StatBarChart } from '../../components/ChartComponents';
 import DomainSwatch from '../../components/DomainSwatch';
 import GlassCard from '../../components/GlassCard';
 import { useColorScheme } from 'nativewind';
+import { useTabRefresh, shouldUseRefreshControl } from '../../hooks/useTabRefresh';
 
 export default function UserDashboard() {
   const router = useRouter();
@@ -42,6 +43,8 @@ export default function UserDashboard() {
     refetchSubs();
   };
 
+  useTabRefresh('dashboard', () => handleRefresh());
+
   if (loadingMe || loadingTasks || loadingSubs) {
     return (
       <View className="flex-1 bg-white dark:bg-zinc-950">
@@ -68,7 +71,7 @@ export default function UserDashboard() {
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 140, paddingTop: 130 }}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />}
+        refreshControl={shouldUseRefreshControl() ? <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} /> : undefined}
       >
         <Animated.View entering={FadeIn.duration(400)}>
           {/* Premium Large Header */}

@@ -9,6 +9,7 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import Background from '../../../../components/Background';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useColorScheme } from 'nativewind';
+import { useTabRefresh, shouldUseRefreshControl } from '../../../../hooks/useTabRefresh';
 
 export default function TaskSubmissionsList() {
   const router = useRouter();
@@ -21,6 +22,8 @@ export default function TaskSubmissionsList() {
     queryKey: ['adminSubmissions'],
     queryFn: () => getAdminSubmissions().then(res => res.data.data),
   });
+
+  useTabRefresh('submissions/task/[taskId]', () => refetch());
 
   if (isLoading) return <LoadingSpinner />;
 
@@ -79,7 +82,7 @@ export default function TaskSubmissionsList() {
         data={filteredSubmissions}
         keyExtractor={(item: any) => item.id}
         contentContainerStyle={{ padding: 16, paddingBottom: 140 }}
-        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
+        refreshControl={shouldUseRefreshControl() ? <RefreshControl refreshing={isRefetching} onRefresh={refetch} /> : undefined}
         ListEmptyComponent={<EmptyState title="No submissions found" message="There are no submissions matching this filter." />}
         renderItem={({ item }: { item: any }) => (
           <SubmissionCard 

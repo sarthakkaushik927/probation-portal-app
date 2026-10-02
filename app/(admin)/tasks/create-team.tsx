@@ -115,7 +115,7 @@ export default function CreateTeamTask() {
         </Animated.View>
       )}
       
-      <ScrollView contentContainerStyle={{ paddingTop: 130, paddingBottom: 120, paddingHorizontal: 20 }}>
+      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingTop: 130, paddingBottom: 120, paddingHorizontal: 20 }}>
         <Stack.Screen options={{ title: 'Create Team Task', headerTransparent: true }} />
         
         {/* Back Button */}
@@ -127,11 +127,7 @@ export default function CreateTeamTask() {
           <Text className="ml-1.5 font-bold text-xs uppercase tracking-widest text-zinc-900 dark:text-white">Back to Tasks</Text>
         </TouchableOpacity>
 
-        {/* Team Badge */}
-        <View className="flex-row items-center mb-6 bg-blue-50 dark:bg-blue-950 px-4 py-2 rounded-full self-start border border-blue-200 dark:border-blue-800">
-          <MaterialIcons name="groups" size={18} color="#3b82f6" />
-          <Text className="ml-2 text-blue-600 dark:text-blue-400 font-black text-xs uppercase tracking-widest">Team Task</Text>
-        </View>
+
 
         {/* Team Name */}
         <View className="mb-4">
@@ -172,7 +168,7 @@ export default function CreateTeamTask() {
         </View>
 
         {/* Members */}
-        <View className="mb-4">
+        <View className="mb-4 z-50" style={{ zIndex: 50, elevation: 50 }}>
           <Text className="text-gray-700 dark:text-slate-300 font-semibold mb-2 ml-1">Assign Members</Text>
           <MemberSelector
             selectedMembers={selectedMembers}
@@ -181,27 +177,7 @@ export default function CreateTeamTask() {
           />
         </View>
 
-        {/* Domain */}
-        <View className="mb-4">
-          <Text className="text-gray-700 dark:text-slate-300 font-semibold mb-2 ml-1">Domain</Text>
-          <View className="flex-row flex-wrap gap-2">
-            {DOMAINS.map((d) => (
-              <TouchableOpacity
-                key={d}
-                onPress={() => setDomain(d)}
-                className={`px-4 py-2.5 rounded-xl border-[3px] border-black dark:border-white ${
-                  domain === d 
-                    ? 'bg-blue-500' 
-                    : 'bg-white dark:bg-zinc-900'
-                }`}
-              >
-                <Text className={`font-mono font-bold text-xs uppercase tracking-wider ${domain === d ? 'text-zinc-900 dark:text-white' : 'text-zinc-500 dark:text-zinc-400'}`}>
-                  {d}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
+
 
         {/* Deadline */}
         <View className="mb-8">

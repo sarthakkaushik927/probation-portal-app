@@ -10,6 +10,7 @@ import Background from '../../../components/Background';
 import { MaterialIcons } from '@expo/vector-icons';
 import GlassCard from '../../../components/GlassCard';
 import { useColorScheme } from 'nativewind';
+import { useTabRefresh, shouldUseRefreshControl } from '../../../hooks/useTabRefresh';
 
 const TaskCard = ({ item, filter }: { item: any, filter: string }) => {
   const router = useRouter();
@@ -47,6 +48,8 @@ export default function AdminSubmissionsList() {
     queryKey: ['adminSubmissions'],
     queryFn: () => getAdminSubmissions().then(res => res.data.data),
   });
+
+  useTabRefresh('submissions/index', () => refetch());
 
   const approveMutation = useMutation({
     mutationFn: (id: string) => approveSubmission(id),
@@ -123,10 +126,10 @@ export default function AdminSubmissionsList() {
         data={groupedSubmissions}
         keyExtractor={(item: any) => item.task.id}
         contentContainerStyle={{ padding: 16, paddingBottom: 140 }}
-        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
+        refreshControl={shouldUseRefreshControl() ? <RefreshControl refreshing={isRefetching} onRefresh={refetch} /> : undefined}
         ListEmptyComponent={<EmptyState title="No submissions found" message="No one has submitted tasks yet." />}
         renderItem={({ item }: { item: any }) => (
-          <TaskCard item={item} />
+          <TaskCard item={item} filter={filter} />
         )}
       />
     </Background>

@@ -89,10 +89,14 @@ export default function SubmissionDetail() {
           {submission.isTeam && submission.user?.members && (
             <View className="flex-row flex-wrap gap-2 mt-4 justify-center">
               {submission.user.members.map((member: any) => (
-                <View key={member.id} className="bg-zinc-100 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-800 px-3 py-1.5 rounded-full flex-row items-center">
+                <TouchableOpacity 
+                  key={member.id} 
+                  className="bg-zinc-100 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-800 px-3 py-1.5 rounded-full flex-row items-center"
+                  onPress={() => router.push(`/(admin)/users/${member.id}` as any)}
+                >
                   <MaterialIcons name="person" size={14} color="#71717a" />
                   <Text className="ml-1.5 text-zinc-900 dark:text-white font-mono text-xs">{member.name}</Text>
-                </View>
+                </TouchableOpacity>
               ))}
             </View>
           )}

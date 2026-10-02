@@ -23,9 +23,7 @@
       "channel": "preview"
     },
     "production": {
-      "android": {
-        "credentialsSource": "local"
-      },
+      "android": {},
       "env": {
         "EXPO_PUBLIC_API_URL": "https://probation-portal-backend.vercel.app/api",
         "EXPO_PUBLIC_USE_PUSHER": "true",
